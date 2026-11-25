@@ -1,7 +1,5 @@
 # Experimento imagem e laudo: conferência entre uma imagem e um laudo (nota de desenho)
 
-
-
 **Nível de evidência de tudo o que este documento prevê medir: N1.** Os níveis 1 e 2 usam dado sintético; o nível 3 usa rótulos **nossos** sobre fotos, não rótulos de classificador. Nenhum número destes experimentos é validade clínica, e a palavra "acurácia" só aparece aqui ao lado do aviso **N1**.
 
 ## 0. Resumo em dez linhas
@@ -15,7 +13,7 @@
 7. **Modelos candidatos** (licença e tamanho conferidos nas páginas dos modelos, hoje): SmolVLM2-2.2B e Qwen2.5-VL-7B (Apache-2.0) para a imagem; Qwen2.5-1.5B-Instruct (Apache-2.0) para o texto; OpenCLIP LAION ViT-B/32 (MIT) como linha de base. A máquina tem **CPU de 14 núcleos, 15,6 GB de RAM e nenhuma GPU dedicada**: o tempo por imagem é de **segundos a dezenas de segundos** (estimativa, não medida).
 8. **Manifesto candidato do nível 3:** **30 fotos de um só atleta, de 11 fotógrafos (nenhum com mais de 23%)**, licença conferida arquivo a arquivo, `docs/consistencia-imagem-laudo-manifesto-nivel3.csv`. **Os rótulos por lado e por nível ainda não existem:** só rótulos grossos, a partir de miniaturas; **as fotos de cadeira de corrida só servem para o atributo `wheelchair`**; **ainda não há foto confirmada com diferença de membro superior** (seção 4.3).
 9. **Nível 2:** WheelPose (código MIT, mas precisa do Unity, e o conjunto de fotos dele sai de vídeos do YouTube) e a biblioteca da Ottobock (acesso fechado: a licença só se lê depois de aceitar termos numa conta) **não passam** na conferência. **Decidido: um nível 2 feito por nós**, com aparência aleatória e variação de pose, oclusão e ruído, e a dificuldade **medida** pela queda da linha de base clássica (seção 4.2).
-10. **As quatro decisões estão registradas na seção 11.1.** **Nada foi baixado e nada será baixado sem o seu aval** (a lista, com nome, fonte e tamanho, está na seção 6.4).
+10. **As quatro decisões estão registradas na seção 11.1.** **Nada foi baixado e nada será baixado sem o aval da equipe** (a lista, com nome, fonte e tamanho, está na seção 6.4).
 
 ## 1. Objetivo e limites
 
@@ -26,7 +24,7 @@
 | O resultado é um aviso para revisão humana | Os três textos de saída pedem revisão; não há estado "rejeitado" nem "inelegível" (seção 3.3) |
 | Nada de inferir saúde, classe ou elegibilidade pela imagem | O esquema só tem o que é **visível**; o modelo não recebe classe, diagnóstico nem pergunta de saúde; o laudo sintético só diz o que está nos rótulos visíveis |
 | Nenhum reconhecimento facial | O modelo não é perguntado sobre pessoa; não há recorte de rosto guardado; os resultados usam só o identificador `K34-L3-nnn`, **nunca o nome** |
-| Modelo local, nada sai da máquina | Runtime local (seção 6.2); sem API externa, sem Colab (D7), sem telemetria |
+| Modelo local, nada sai da máquina | Runtime local (seção 6.2); sem API externa, sem Colab, sem telemetria |
 | Imagens do nível 3 fora do repositório | Só o manifesto (CSV) entra; as fotos ficam numa pasta fora do repositório, com `.gitignore` |
 | Não usar imagem da LEXI | Nenhuma imagem, nem como modelo de desenho: o boneco é desenhado por nós, de zero |
 | Sem texto da cartilha do CPB | Os laudos sintéticos são escritos por nós, sem trecho da cartilha |
@@ -103,7 +101,7 @@ Nenhum texto fala em "elegível", "rejeitado" ou em classe.
 
 ### 4.2 Nível 2: sintético NOSSO, com variação de pose, oclusão e ruído
 
-**Decidido por você em 05/11/2026** ("aceitar, com variação de pose, oclusão e ruído"). É o **gerador do nível 1 com muito mais variação**, de modo que o nível 2 seja **de fato mais difícil** que o 1, e **todo ele é nosso** (sem licença externa, rótulos **exatos**).
+**Decidido pela equipe em 05/11/2026** ("aceitar, com variação de pose, oclusão e ruído"). É o **gerador do nível 1 com muito mais variação**, de modo que o nível 2 seja **de fato mais difícil** que o 1, e **todo ele é nosso** (sem licença externa, rótulos **exatos**).
 
 **O que varia (cada fator tem uma intensidade de 0 a 3):**
 
@@ -141,7 +139,7 @@ Nenhum texto fala em "elegível", "rejeitado" ou em classe.
 
 ### 4.3 Nível 3: fotos reais do Wikimedia Commons (só manifesto)
 
-**O que existe nesta PR:** `docs/consistencia-imagem-laudo-manifesto-nivel3.csv`, com **30 arquivos candidatos** (a primeira versão tinha 35; esta é a **segunda**, depois do seu pedido de "mais fotos e fotógrafos"). Nenhuma foto foi baixada para o disco nem entra no repositório; vi **miniaturas no navegador** para escolher e para os rótulos grossos.
+**O que existe nesta etapa:** `docs/consistencia-imagem-laudo-manifesto-nivel3.csv`, com **30 arquivos candidatos** (a primeira versão tinha 35; esta é a **segunda**, depois do pedido de "mais fotos e fotógrafos"). Nenhuma foto foi baixada para o disco nem entra no repositório; vi **miniaturas no navegador** para escolher e para os rótulos grossos.
 
 **A regra do atleta único (decisão de desenho, porque o par imagem e laudo só vale para UM atleta):**
 
@@ -174,17 +172,17 @@ Nenhum texto fala em "elegível", "rejeitado" ou em classe.
 
 **Limitações do manifesto, ditas com franqueza:**
 
-- **Rótulos por lado e por nível não existem.** A partir de miniaturas só se vê o grosso. Os rótulos que o experimento imagem e laudo usa (os quatro níveis, `?` incluído) exigem **olhar cada foto em tamanho original**; é o **primeiro passo da PR 3**, e proponho que **você veja as fotos antes** (as 30 páginas estão no CSV) e **retire as que não quiser**.
+- **Rótulos por lado e por nível não existem.** A partir de miniaturas só se vê o grosso. Os rótulos que o experimento imagem e laudo usa (os quatro níveis, `?` incluído) exigem **olhar cada foto em tamanho original**; é o **primeiro passo da etapa 3**, e o plano é **rever as fotos antes** (as 30 páginas estão no CSV) e **retirar as que não servirem**.
 - **Ainda não há uma foto clara de um só atleta com diferença de membro superior confirmada.** Procurei em 19 categorias de atletas amputados e em buscas por texto. As **7 fotos com `upper_limbs: to_confirm`** são de provas de classes de braço ou de atletas que podem ter diferença de braço; **só a revisão em tamanho original diz se o braço aparece diferente**. **Se não aparecer em nenhuma, o nível 3 não testa o membro superior**, e o relatório **diz isso** (o nível 2, nosso, testa).
 - **Pouca variedade, ainda:** 11 fotógrafos, mas **quase tudo é atletismo de elite**, adultos, de **2007 a 2022**, com 11 das 30 de **2013** (o Mundial e a Maratona de Londres, de **três** fotógrafos). Não representa treino, formulário de peneira, nem foto de celular.
-- **Idade e evento:** todos os arquivos são de eventos de elite e, na aparência, de adultos; **a idade não foi conferida arquivo a arquivo**. Dois têm a data ou o evento a confirmar (`K34-L3-018`, de 2007, numa prova em Manchester; e `K34-L3-010`, cuja data nos dados do arquivo, 2008, não bate com o título, 2011). Eu os retiro se você preferir. **Havia crianças ao fundo em duas fotos candidatas; foram tiradas.**
+- **Idade e evento:** todos os arquivos são de eventos de elite e, na aparência, de adultos; **a idade não foi conferida arquivo a arquivo**. Dois têm a data ou o evento a confirmar (`K34-L3-018`, de 2007, numa prova em Manchester; e `K34-L3-010`, cuja data nos dados do arquivo, 2008, não bate com o título, 2011). Podem ser retirados se a equipe preferir. **Havia crianças ao fundo em duas fotos candidatas; foram tiradas.**
 - **Revisão de licença do Commons:** arquivos importados do Flickr (os da Agência Brasil e de Peter Wayne, em CC BY 2.0) dependem de a licença no Flickr ter sido a declarada; conferi o que o Commons declara, **não** a página original.
 
 **Privacidade, nomes e atribuição (valem para tudo que sair do experimento imagem e laudo):**
 
 - **O endereço de cada arquivo no Commons contém o nome do atleta** (o título do arquivo costuma citá-lo). **O manifesto fica só no repositório privado**; **o relatório, os resultados e os slides usam apenas os identificadores `K34-L3-nnn`** e **não repetem nomes**. O manifesto **não pode virar público** sem tirar os endereços.
-- **Atribuição:** CC BY e CC BY-SA exigem **creditar autor e licença onde a imagem for exibida**, e a **CC BY-SA exige compartilhar igual as adaptações**: **qualquer imagem derivada (recorte, filtro, mosaico) que for mostrada ou distribuída precisa levar a mesma licença e a atribuição**. O manifesto tem os campos de autor, licença e endereço da licença. **Não há distribuição das fotos** neste projeto, e **o que for mostrado em slide é decisão sua**, com a atribuição.
-- **Licença não é direito de imagem:** a licença cobre o **direito autoral**, não o direito de imagem nem a LGPD de uma pessoa identificável. O risco **foi aceito por você** na ADR 0022; o texto, o relatório e qualquer slide **repetem** a ressalva.
+- **Atribuição:** CC BY e CC BY-SA exigem **creditar autor e licença onde a imagem for exibida**, e a **CC BY-SA exige compartilhar igual as adaptações**: **qualquer imagem derivada (recorte, filtro, mosaico) que for mostrada ou distribuída precisa levar a mesma licença e a atribuição**. O manifesto tem os campos de autor, licença e endereço da licença. **Não há distribuição das fotos** neste projeto, e **o que for mostrado em slide é decisão da equipe**, com a atribuição.
+- **Licença não é direito de imagem:** a licença cobre o **direito autoral**, não o direito de imagem nem a LGPD de uma pessoa identificável. O risco **foi aceito pela equipe**; o texto, o relatório e qualquer slide **repetem** a ressalva.
 
 ## 5. Erros plantados (a taxonomia)
 
@@ -215,7 +213,7 @@ Verificado hoje: **Intel Core Ultra 5 125H** (14 núcleos, 18 threads), **15,6 G
 
 ### 6.3 Candidatos (licença e tamanho conferidos nas páginas dos modelos, em 05/11/2026)
 
-**Tempo por imagem é ESTIMATIVA, não medida** (nada foi baixado). Cálculo: geração limitada pela memória (bytes do modelo contra cerca de 60 a 90 GB/s, a 30 a 50% de eficiência) e leitura do prompt limitada pelo cálculo (2 operações por parâmetro por token, em 0,2 a 0,4 TFLOPS úteis); prompt de cerca de 250 tokens, saída de cerca de 80 tokens. **Será medido na PR 3** e substituirá estes números.
+**Tempo por imagem é ESTIMATIVA, não medida** (nada foi baixado). Cálculo: geração limitada pela memória (bytes do modelo contra cerca de 60 a 90 GB/s, a 30 a 50% de eficiência) e leitura do prompt limitada pelo cálculo (2 operações por parâmetro por token, em 0,2 a 0,4 TFLOPS úteis); prompt de cerca de 250 tokens, saída de cerca de 80 tokens. **Será medido na etapa 3** e substituirá estes números.
 
 | Papel | Modelo (repositório) | Licença dos pesos | Tamanho a baixar | RAM em uso | Tempo estimado por imagem (CPU) | Observação |
 |---|---|---|---|---|---|---|
@@ -227,7 +225,7 @@ Verificado hoje: **Intel Core Ultra 5 125H** (14 núcleos, 18 threads), **15,6 G
 
 **Excluídos, com o motivo:** **Gemma 3 e PaliGemma** (licença Gemma, com acesso condicionado por aceite manual); **Phi-3.5-vision, Moondream2, InternVL3 e Florence-2** (licenças MIT ou Apache-2.0, mas as páginas deles estão marcadas `custom_code`: em `transformers` exigem `trust_remote_code`, ou seja, **executar código que vem do repositório do modelo**, o que não quero fazer sem ler esse código; o Florence-2 também não segue instrução em JSON, e não achei GGUF do Phi-3.5-vision). **SmolVLM2 e Qwen2.5-VL não têm esse marcador** (conferido na API de modelos hoje).
 
-### 6.4 O que precisa do seu aval antes de baixar (para a PR 3)
+### 6.4 O que precisa de aval antes de baixar (para a etapa 3)
 
 Nada abaixo foi baixado. Cada item tem **nome, fonte e tamanho**:
 
@@ -239,7 +237,7 @@ Nada abaixo foi baixado. Cada item tem **nome, fonte e tamanho**:
 | Qwen2.5-1.5B-Instruct, GGUF Q4_K_M | `huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF` | 1,12 GB |
 | OpenCLIP LAION ViT-B/32 (`open_clip_model.safetensors`) | `huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K` | 0,61 GB |
 | Pacotes Python do ambiente novo (`torch` para CPU, `open_clip_torch`, `numpy`, `pillow`, `httpx`) | PyPI | cerca de 0,3 GB |
-| As fotos do nível 3 que você aprovar | Wikimedia Commons (pelos endereços do manifesto) | cerca de 184 MB (as 30) |
+| As fotos do nível 3 que a equipe aprovar | Wikimedia Commons (pelos endereços do manifesto) | cerca de 184 MB (as 30) |
 | **Total** | | **cerca de 9 GB** |
 
 ## 7. Linhas de base obrigatórias
@@ -262,7 +260,7 @@ Nada abaixo foi baixado. Cada item tem **nome, fonte e tamanho**:
 | 2 | 300 | 2.100 | SmolVLM2: 1,1 h · Qwen2.5-VL-7B: em 100 imagens, 1,1 h |
 | 3 | 30 a 50 (hoje, 30) | 210 a 350 | os dois modelos nas 30 a 50: cerca de 7 a 11 min (SmolVLM2) e 20 a 33 min (Qwen2.5-VL-7B) |
 
-O extrator de laudo roda por **laudo** (3 a 6 s por laudo no modelo de texto): para o nível 1 isso seria **3.024 laudos**, de 2,5 a 5 h; **proponho uma amostra estratificada de 1.000 laudos** no nível 1 e as **regras** (linha de base) em todos; nos níveis 2 e 3 **todos** os laudos (cerca de 2.300, cerca de 3 h). Soma estimada: **cerca de 10 a 12 h de máquina**, em segundo plano, sem competir com outras execuções.
+O extrator de laudo roda por **laudo** (3 a 6 s por laudo no modelo de texto): para o nível 1 isso seria **3.024 laudos**, de 2,5 a 5 h; **propõe-se uma amostra estratificada de 1.000 laudos** no nível 1 e as **regras** (linha de base) em todos; nos níveis 2 e 3 **todos** os laudos (cerca de 2.300, cerca de 3 h). Soma estimada: **cerca de 10 a 12 h de máquina**, em segundo plano, sem competir com outras execuções.
 
 **Por nível e por tipo de erro plantado**, sempre com o **tamanho do conjunto** ao lado:
 
@@ -286,18 +284,18 @@ O extrator de laudo roda por **laudo** (3 a 6 s por laudo no modelo de texto): p
 - **Não mede classe nem elegibilidade**, e **não vai** ser usado para isso.
 - **O CLIP erra esquerda e direita**; ele entra **só** como linha de base.
 - **Os modelos são pequenos** porque a máquina é pequena: um resultado fraco **não** diz que um modelo maior falharia.
-- **Tempos e tamanhos são estimativas** até a PR 3.
+- **Tempos e tamanhos são estimativas** até a etapa 3.
 
 ## 10. Riscos
 
 | Risco | Mitigação |
 |---|---|
-| **Direito de imagem e LGPD** de pessoas identificáveis nas fotos (a licença não cobre isso) | Risco **aceito por você** (ADR 0022); fotos **só locais** e **fora do repositório**; **o manifesto fica só no repositório privado** (os endereços trazem nomes) e **o relatório não repete nomes**; resultados só com `K34-L3-nnn`; nenhum rosto, nenhuma inferência de saúde; o que for a slide é **sua** decisão |
+| **Direito de imagem e LGPD** de pessoas identificáveis nas fotos (a licença não cobre isso) | Risco **aceito pela equipe**; fotos **só locais** e **fora do repositório**; **o manifesto fica só no repositório privado** (os endereços trazem nomes) e **o relatório não repete nomes**; resultados só com `K34-L3-nnn`; nenhum rosto, nenhuma inferência de saúde; o que for a slide é **sua** decisão |
 | **CC BY-SA** (atribuição e compartilhamento igual) | O manifesto guarda autor, licença e endereço; **imagem derivada mostrada ou distribuída leva a mesma licença e a atribuição**; não há distribuição das fotos |
 | **Par imagem e laudo com mais de um atleta** | Nível 3 restrito a **um só atleta** (o maior, em foco e central); as duas fotos com gente ao fundo estão marcadas `single_with_background`; foto de grupo saiu |
 | **Cadeira de corrida esconde as pernas** | As 13 fotos desse grupo **só valem para `wheelchair`** (coluna `usable_attributes`); o nível do membro inferior nelas é `?` |
 | **Esquerda e direita** (da pessoa, e não de quem olha) | Convenção escrita e testada; imagem espelhada nos testes; CLIP como baseline |
-| **Rótulos nossos feitos à mão** com viés | Rótulo de **só o que é visível**, `?` quando duvidoso; revisão por você antes da execução; as dúvidas viram `?`, não palpite |
+| **Rótulos nossos feitos à mão** com viés | Rótulo de **só o que é visível**, `?` quando duvidoso; revisão pela equipe antes da execução; as dúvidas viram `?`, não palpite |
 | **Número pequeno no nível 3** | Intervalos mostrados; nenhuma conclusão onde o intervalo cobre o chute |
 | **Laudo sintético fácil demais** (templates) | Variações e ruído (f); a verdade é o rótulo, não o texto; baseline por regras para ver o ganho do modelo |
 | **O modelo pequeno não segue o esquema** | Saída restrita por gramática; relatar a taxa de "não sei" em vez de forçar |
@@ -308,23 +306,23 @@ O extrator de laudo roda por **laudo** (3 a 6 s por laudo no modelo de texto): p
 
 ## 11. Decisões
 
-### 11.1 Respostas do usuário, decididas em 05/11/2026
+### 11.1 Respostas da equipe, decididas em 05/11/2026
 
 | # | Pergunta | Decisão |
 |---|---|---|
 | 1 | O manifesto do nível 3 | **"Pedir mais fotos e fotógrafos."** Feito nesta versão: 30 fotos de **um só atleta**, **11 fotógrafos**, nenhum com mais de 23% (seção 4.3). A busca por **membro superior** continua **sem foto confirmada** |
 | 2 | O nível 2 | **"Aceitar, com variação de pose, oclusão e ruído."** Seção 4.2: sintético **nosso**, com aparência aleatória e variação de pose, oclusão, iluminação, geometria, fundo e ruído; a dificuldade é **medida** pela queda da linha de base clássica |
-| 3 | Modelos e runtime | **"Aceitar a lista candidata"**: SmolVLM2-2.2B, Qwen2.5-VL-7B, Qwen2.5-1.5B, OpenCLIP e llama.cpp (seção 6.3). **O download real continua dependendo do seu aval na PR 3, com nome, fonte e tamanho** (seção 6.4) |
+| 3 | Modelos e runtime | **"Aceitar a lista candidata"**: SmolVLM2-2.2B, Qwen2.5-VL-7B, Qwen2.5-1.5B, OpenCLIP e llama.cpp (seção 6.3). **O download real continua dependendo do aval da equipe na etapa 3, com nome, fonte e tamanho** (seção 6.4) |
 | 4 | Tamanhos | **"Aceitar os tamanhos"**: 432 imagens no nível 1, 300 no nível 2 e 30 a 50 no nível 3; **10 a 12 h de máquina** em segundo plano (seção 8) |
 
 ### 11.2 O que continua aberto
 
-1. **Revisão das 30 fotos em tamanho original**, que dá os rótulos por lado e por nível (primeiro passo da PR 3). **Você pode abrir as 30 páginas antes** e retirar as que não quiser.
-2. **O membro superior no nível 3.** Se a revisão não achar diferença de braço visível em nenhuma foto, o nível 3 **não testa** o membro superior (o nível 2 testa). Se você tiver outra fonte, diga.
-3. **Os downloads da PR 3**, um a um, com nome, fonte e tamanho (seção 6.4).
-4. **O que mostrar em slide**, com a atribuição (seção 4.3), é decisão sua.
+1. **Revisão das 30 fotos em tamanho original**, que dá os rótulos por lado e por nível (primeiro passo da etapa 3). **Dá para abrir as 30 páginas antes** e retirar as que não servirem.
+2. **O membro superior no nível 3.** Se a revisão não achar diferença de braço visível em nenhuma foto, o nível 3 **não testa** o membro superior (o nível 2 testa). Se houver outra fonte, ela entra.
+3. **Os downloads da etapa 3**, um a um, com nome, fonte e tamanho (seção 6.4).
+4. **O que mostrar em slide**, com a atribuição (seção 4.3), é decisão da equipe.
 
-## 12. Plano de testes (para a PR 2)
+## 12. Plano de testes (para a etapa 2)
 
 Todos **determinísticos**, **sem `torch` e sem `transformers`**, com **extratores falsos**:
 
@@ -335,18 +333,18 @@ Todos **determinísticos**, **sem `torch` e sem `transformers`**, com **extrator
 - **Extrator falso perfeito:** 100% no pipeline (a comparação não erra); **extratores falsos com falhas plantadas** (inverte lado, erra um nível, devolve `?`) dão o veredito previsto; o pipeline **localiza o erro** (imagem, laudo ou comparação).
 - **Métricas:** Wilson contra valores de referência; bootstrap por imagem **reproduzível** com semente; quadro por nível e por tipo.
 - **Linha de base clássica:** lê o PNG e acerta o boneco limpo; o teste **afirma o resultado** (se for 100%, o documento diz).
-- **Guarda de isolamento:** o pacote novo **não importa** `torch`, `transformers` nem rede; nada fora do pacote o importa até a PR 3; **nenhum arquivo** de imagem de pessoa, nenhum peso e nenhum laudo real no repositório.
+- **Guarda de isolamento:** o pacote novo **não importa** `torch`, `transformers` nem rede; nada fora do pacote o importa até a etapa 3; **nenhum arquivo** de imagem de pessoa, nenhum peso e nenhum laudo real no repositório.
 - **Texto de saída:** **não contém** "elegível", "rejeitado" nem "classe", e **sempre** pede revisão humana.
 
-## 13. As três PRs
+## 13. As três etapas
 
-| PR | Ramo | Conteúdo | Quando (meta, não compromisso) |
+| Etapa | Conteúdo | Quando (meta, não compromisso) |
 |---|---|---|---|
-| **1** | ramo interno | Esta nota e o manifesto candidato. **Sem código** | cerca de 11/11 |
-| **2** | ramo interno | `src/para_triage/consistency/` (esquema, gerador do boneco, geradores de laudo e de erros, comparador, métricas, baseline clássica) e os testes com extratores falsos. **Sem modelo, sem `pyproject.toml`, sem CI** | cerca de 15/11 |
-| **3** | ramo interno | `spikes/imagem_laudo/` (`requirements.txt` próprio, **ambiente virtual novo fora do repositório e fora de `<ambiente do projeto>`**, que **não será alterado**), extratores, CLIP, os três níveis, os resultados e o relatório. **Os downloads só depois do seu aval** | cerca de 23/11, para a entrega de 26/11 |
+| **1** | Esta nota e o manifesto candidato. **Sem código** | cerca de 11/11 |
+| **2** | `src/para_triage/consistency/` (esquema, gerador do boneco, geradores de laudo e de erros, comparador, métricas, baseline clássica) e os testes com extratores falsos. **Sem modelo, sem `pyproject.toml`, sem CI** | cerca de 15/11 |
+| **3** | `spikes/imagem_laudo/` (`requirements.txt` próprio, **ambiente virtual novo fora do repositório e fora de `<ambiente do projeto>`**, que **não será alterado**), extratores, CLIP, os três níveis, os resultados e o relatório. **Os downloads só depois do aval da equipe** | cerca de 23/11, para a entrega de 26/11 |
 
-Cada PR **espera a revisão** antes da seguinte. Se o nível 3 atrasar, entregam-se os níveis 1 e 2 e **diz-se**.
+Cada etapa **espera a revisão** antes da seguinte. Se o nível 3 atrasar, entregam-se os níveis 1 e 2 e **diz-se**.
 
 ## 14. Fontes e como foram conferidas (05/11/2026)
 
@@ -358,7 +356,7 @@ Tudo por **leitura de página e de API pública**; **nada** foi baixado para o d
 - **Máquina:** consulta do sistema (processador, memória, vídeo, disco, Python).
 - **Tempos por imagem:** **estimativas por cálculo**, não medições (seção 6.3).
 
-## 15. Estado da implementação (PR 2, ramo interno)
+## 15. Estado da implementação (etapa 2)
 
 **Evidência: N1.** Lógica pura e nível 1. **Sem modelo, sem `torch`, sem `transformers`, sem download, sem biblioteca nova** (o PNG é escrito e lido com `zlib` e `struct`; o desenho é rasterizado com `numpy`). `pyproject.toml`, CI, API, web e as outras pastas não foram tocados.
 

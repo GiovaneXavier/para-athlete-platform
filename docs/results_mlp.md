@@ -55,7 +55,7 @@ Configuração: `{'hidden': (128, 64), 'dropout': 0.2, 'lr': 0.002, 'weight_deca
 
 1. O conjunto é **balanceado por classe e concentra casos perto dos limiares**. O MLP aprende essa distribuição de amostragem, então os números não se transferem para prevalências reais.
 2. O ruído e as taxas de campos faltantes são **suposições** (ver [synthetic_data.md](synthetic_data.md)).
-3. O rótulo vem das mesmas regras. Nos grupos provisórios (encefálicos, Petra, cadeira), as regras são a minha leitura da cartilha ([rules_coverage.md](rules_coverage.md)), então esses resultados medem a capacidade de reproduzir essa leitura sob ruído, não a classificação oficial.
+3. O rótulo vem das mesmas regras. Nos grupos provisórios (encefálicos, Petra, cadeira), as regras são a nossa leitura da cartilha ([rules_coverage.md](rules_coverage.md)), então esses resultados medem a capacidade de reproduzir essa leitura sob ruído, não a classificação oficial.
 4. A validade externa só virá do conjunto de vinhetas da especialista.
 
 ## Reproduzir

@@ -14,7 +14,7 @@ from para_triage.rules import Impairment, Posture, Profile, RuleEngine, Sex
 
 EDUCATION_DIR = Path(cases.__file__).parent
 ENGINE = RuleEngine()
-MAX_DISCARD_SHARE = 0.01  # above this, stop and tell the architecture session (docs/educacao.md section 2)
+MAX_DISCARD_SHARE = 0.01  # above this, stop and review the sampler
 
 
 def limb_profile(group, levels, **extra):

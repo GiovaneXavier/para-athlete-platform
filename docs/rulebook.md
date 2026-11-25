@@ -1,17 +1,17 @@
-# Livro de regras (K20, adoção, etapas 0 a 2): nota de desenho
+# Livro de regras (adoção, etapas 0 a 2): nota de desenho
 
-**Estado:** nota aprovada (PR #10) e implementada no ramo `feature/rulebook-0-2` (etapas 0 a 2). A seção "Como ficou a implementação", no fim, lista o que mudou em relação à nota e os números.
+**Estado:** nota aprovada e implementada (etapas 0 a 2). A seção "Como ficou a implementação", no fim, lista o que mudou em relação à nota e os números.
 
-**O que é:** um **motor novo, ao lado do atual**, que lê as regras de arquivos YAML (o livro de regras, ADR 0020) e devolve o **veredito por classe com os sete estados** e o **rastro por critério**, para os grupos **visual** (11 a 13) e **baixa estatura** (40 e 41). O `RuleEngine` atual **continua sendo o padrão**: a API, o K2, o K18 e a triagem **não mudam**. A troca só vem quando todos os grupos tiverem paridade, em etapa futura que a arquitetura pedirá.
+**O que é:** um **motor novo, ao lado do atual**, que lê as regras de arquivos YAML (o livro de regras) e devolve o **veredito por classe com os sete estados** e o **rastro por critério**, para os grupos **visual** (11 a 13) e **baixa estatura** (40 e 41). O `RuleEngine` atual **continua sendo o padrão**: a API, o módulo de educação, o guia e a triagem **não mudam**. A troca só vem quando todos os grupos tiverem paridade, em etapa futura.
 
-**Partida:** o protótipo `option_b` do experimento K20 (não incluído neste repositório) (139 linhas de interpretador, 0 divergências em 4.357 perfis do grupo visual). Nada de `spikes/` é importado: o interpretador é **copiado e reescrito** no pacote. `option_a` (OpenFisca) não entra.
+**Partida:** o protótipo `option_b` do experimento do livro de regras (não incluído neste repositório) (139 linhas de interpretador, 0 divergências em 4.357 perfis do grupo visual). Nada de `spikes/` é importado: o interpretador é **copiado e reescrito** no pacote. `option_a` (OpenFisca) não entra.
 
 ## O que verifiquei antes de escrever
 
 - O protótipo B já cobre o visual inteiro com três construções: critério sobre uma medida, flag e lista de regras de decisão. **A baixa estatura pede três coisas novas**: (1) **parâmetros por sexo**; (2) uma **medida derivada** (a soma de estatura e braço); (3) uma **regra de classe** que combina critérios com "todos" (os três limites ao mesmo tempo), e não só "algum" (o visual).
 - No motor atual, "a classe mais comprometida que o caso atende" é, nos **dois** grupos, **a de menor número entre as que têm evidência** (visual: `min(hits)`; baixa estatura: itera em ordem crescente e para na primeira). Então um único `pick: most_impaired` serve aos dois.
 - Os números dos dois grupos **já existem** em `rules/classes.yaml` (`criteria`). O livro de regras vai repeti-los durante a convivência dos motores; a defesa é um teste que compara os dois (ver 6).
-- O rastro do K2 (`education/trace.py`) para esses grupos tem passos por classe e critério com valor e resultado; o do novo interpretador precisa ser **equivalente em conteúdo**, e há uma diferença a tratar: o K2 mostra o limite do campo da classe 13 mesmo quando o da 12 já decidiu (a cadeia "senão" do motor); o interpretador novo vai **manter o resultado bruto** e marcar `superseded_by`, para os dois coincidirem (ver 4).
+- O rastro do módulo de educação (`education/trace.py`) para esses grupos tem passos por classe e critério com valor e resultado; o do novo interpretador precisa ser **equivalente em conteúdo**, e há uma diferença a tratar: o módulo de educação mostra o limite do campo da classe 13 mesmo quando o da 12 já decidiu (a cadeia "senão" do motor); o interpretador novo vai **manter o resultado bruto** e marcar `superseded_by`, para os dois coincidirem (ver 4).
 
 ## 1. Estrutura de pastas
 
@@ -185,7 +185,7 @@ Cada avaliação devolve `trace`: uma lista de passos `{criterion, class_id, mea
 
 `python -m para_triage.rulebook regress [--group visual|short_stature|all]` (e o mesmo dentro do `pytest`):
 
-1. **Perfis:** a **amostra do K2** do grupo (`sample_true_profiles`, 200 perfis por semente, sementes 0 a 4), cada um completo e com **cada medida escondida** (e com todas); uma **varredura em volta de cada limiar**, **gerada a partir dos parâmetros do próprio YAML** (limite −0,01, igual, +0,01, +0,05; para a baixa estatura, por sexo, nas três medidas e na soma; a faixa de 1,40 a 1,50 inteira); e perfis de **outras deficiências** (`not_applicable`).
+1. **Perfis:** a **amostra do módulo de educação** do grupo (`sample_true_profiles`, 200 perfis por semente, sementes 0 a 4), cada um completo e com **cada medida escondida** (e com todas); uma **varredura em volta de cada limiar**, **gerada a partir dos parâmetros do próprio YAML** (limite −0,01, igual, +0,01, +0,05; para a baixa estatura, por sexo, nas três medidas e na soma; a faixa de 1,40 a 1,50 inteira); e perfis de **outras deficiências** (`not_applicable`).
 2. **Referência:** `RuleEngine.evaluate` sobre o mesmo `Profile`.
 3. **Novo:** o interpretador, com um adaptador `Profile -> medidas` (`sex` vira "M" ou "F"; campos ausentes ficam ausentes).
 4. **Igualdade:** `status` e `missing` por classe. **Meta: 0 divergências.** Divergências saem com o perfil, a classe e os dois vereditos; o comando termina com código 1.
@@ -197,9 +197,9 @@ Cada avaliação devolve `trace`: uma lista de passos `{criterion, class_id, mea
 - **Vigência:** cada valor de parâmetro tem `from` e `to` (`to: null` = em aberto). `evaluate(..., on=<data>)` escolhe o valor em vigor nessa data; sem `on`, vale o `reference_date` da variante (**nunca "hoje"**, para o resultado não depender do relógio). Um critério com `valid` fora da data de referência sai `skipped` no rastro. Data sem nenhum valor em vigor é **erro explícito** (`NoValueInForce`), não um valor qualquer.
 - **Diff entre variantes (R-6):** `python -m para_triage.rulebook diff --group visual --a cpb-2024 --b cpb-2024 --set boundary_in_class_11=true` roda as duas sobre a amostra e imprime, de forma legível: quantos perfis mudam, **a tabela de transições** (classe, status antes e depois, quantidade) e **três exemplos** com o valor da medida. É a função `diff_variants(group, a, b, cases)` do `compare.py`; o protótipo já fez isso (234 e 29 perfis).
 
-## 6.1 Reconstituição do rastro do K2 e do K18 (só um teste)
+## 6.1 Reconstituição do rastro do módulo de educação e do guia (só um teste)
 
-`tests/test_rulebook_trace_equivalence.py`: para os grupos visual e baixa estatura, sobre perfis da amostra do K2, compara o rastro do novo interpretador com `education/trace.py`: **mesmo critério** (por classe e medida), **mesmo valor** (o número extraído do texto do K2 e o valor bruto do novo) e **mesmo resultado** (`met` e `not_met`). **Não troca** o K2 nem o K18 de rastro.
+`tests/test_rulebook_trace_equivalence.py`: para os grupos visual e baixa estatura, sobre perfis da amostra do módulo de educação, compara o rastro do novo interpretador com `education/trace.py`: **mesmo critério** (por classe e medida), **mesmo valor** (o número extraído do texto do módulo de educação e o valor bruto do novo) e **mesmo resultado** (`met` e `not_met`). **Não troca** o módulo de educação nem o guia de rastro.
 
 ## 7. Plano de testes
 
@@ -210,17 +210,17 @@ Cada avaliação devolve `trace`: uma lista de passos `{criterion, class_id, mea
 | 3 | **Variantes**: `overrides` por nome, `--set`, variante inexistente e parâmetro inexistente dão erro claro | 0 |
 | 4 | **Mensagens**: todo código usado nos YAML existe em `pt` e `en`; fallback para `en` | 0 |
 | 5 | **Testes como dados** dos YAML (os blocos `tests`) rodam e passam; cada um cita fonte | 0, 1, 2 |
-| 6 | **Regressão visual**: 0 divergências (amostra do K2 × 5 sementes × cada máscara, varredura, outras deficiências) | 1 |
+| 6 | **Regressão visual**: 0 divergências (amostra do módulo de educação × 5 sementes × cada máscara, varredura, outras deficiências) | 1 |
 | 7 | **Regressão baixa estatura**: 0 divergências (por sexo; soma; ordem; sexo ou medida faltando; limites exatos) | 2 |
 | 8 | **Paridade dos números** com `classes.yaml` | 1, 2 |
-| 9 | **Equivalência do rastro** com o K2 (6.1) | 1, 2 |
+| 9 | **Equivalência do rastro** com o módulo de educação (6.1) | 1, 2 |
 | 10 | **Diff entre variantes** reproduz os números do protótipo (234 e 29 perfis) | 1 |
 | 11 | **Regra de parada**: `interpreter.py` e `messages.py` com no máximo 500 linhas de código | 0 |
 | 12 | **O motor atual não mudou**: os testes atuais passam, `RuleEngine` continua sendo o padrão e nenhuma rota importa o pacote novo | todas |
 
 ## 8. O que não será feito
 
-- Trocar o `RuleEngine`, a API, o K2, o K18, o guarda do relatório ou a triagem para o motor novo.
+- Trocar o `RuleEngine`, a API, o módulo de educação, o guia, o guarda do relatório ou a triagem para o motor novo.
 - Os grupos de amputação, a classe 20 e os provisórios (etapas 3 a 5, em outra rodada).
 - Uma **linguagem de expressões geral**: se uma regra de um desses grupos pedir uma, **paro e aviso**, como a regra de parada manda.
 - Espanhol, interface de variantes na web e remoção de `criteria` de `classes.yaml` (só quando houver a troca).
@@ -233,7 +233,7 @@ Cada avaliação devolve `trace`: uma lista de passos `{criterion, class_id, mea
 | **A linguagem crescer** (cada grupo pede um operador) | O teste de 500 linhas; a baixa estatura é justamente o teste de crescimento: se ela pedir mais do que `by`, `derived` e `all_of`, **paro e aviso** |
 | **Duas cópias dos números** (YAML do livro e `classes.yaml`) divergirem | Teste de paridade (8); a cópia antiga sai na troca |
 | **Interpretador com nome de grupo escondido** (o protótipo cometeu um erro assim com o nome de um flag) | Nada de nomes de grupo no `interpreter.py`; um teste roda o interpretador com livros mínimos de nomes inventados |
-| **Rastro diferente do K2 em detalhe** (a cadeia "senão") | `superseded_by` e o teste 9 |
+| **Rastro diferente do módulo de educação em detalhe** (a cadeia "senão") | `superseded_by` e o teste 9 |
 | **Data de referência fixa** esconder uma mudança de vigência | `reference_date` explícita na variante; o diff entre datas mostra o efeito |
 | **Adaptador de `Profile` frágil** (nome de campo, enum) | Testado nas duas pontas pela regressão; os nomes das medidas são os do `Profile` |
 | **Regressão fraca** | Varredura gerada dos próprios parâmetros, máscara em cada medida e perfis de outras deficiências |
@@ -241,8 +241,8 @@ Cada avaliação devolve `trace`: uma lista de passos `{criterion, class_id, mea
 ## 10. Dúvidas para a arquitetura
 
 1. **`pyproject.toml`**: uma linha em `package-data` para os YAML irem no pacote. Aceita? (Alternativa: ler os YAML por caminho relativo ao arquivo, que só funciona em instalação editável.)
-2. **`rules_version()` (o id das regras)** inclui os arquivos do `rulebook/`? Recomendo **não ainda**: o motor padrão continua sendo o antigo, e incluir agora faria o JSON de transparência, o guia e o golden do K2 mudarem a cada ajuste do livro de regras. Entra na troca.
-3. **Data de referência** da variante `cpb-2024`: proponho **2024-10-01** (dentro da vigência de todos os valores). Aceita?
+2. **`rules_version()` (o id das regras)** inclui os arquivos do `rulebook/`? Recomendo **não ainda**: o motor padrão continua sendo o antigo, e incluir agora faria o JSON de transparência, o guia e o golden do módulo de educação mudarem a cada ajuste do livro de regras. Entra na troca.
+3. **Data de referência** da variante `cpb-2024`: propõe-se **2024-10-01** (dentro da vigência de todos os valores). Aceita?
 4. **Local dos dados**: `rulebook/data/` (proposto) ou `rulebook_data/` ao lado, como o brief permite.
 5. **`status` e revisor**: o formato exige `source` e `status` em todo critério e parâmetro; `reviewer` e `reviewed_on` só quando `status: reviewed`. Aceita?
 6. **Trace**: `superseded_by` para a cadeia "senão", em vez de `skipped` como no protótipo. Aceita?
@@ -252,7 +252,7 @@ Cada avaliação devolve `trace`: uma lista de passos `{criterion, class_id, mea
 
 ## Como ficou a implementação
 
-**Números** (de `python -m para_triage.rulebook regress`, amostra do K2 de 5 sementes mais a varredura):
+**Números** (de `python -m para_triage.rulebook regress`, amostra do módulo de educação de 5 sementes mais a varredura):
 
 | | Visual | Baixa estatura |
 |---|---|---|
@@ -289,7 +289,7 @@ Em relação ao protótipo do experimento, as **novas** são 2 (parâmetro por c
 
 - `package-data` no `pyproject.toml`: uma linha, `"para_triage.rulebook" = ["data/**/*.yaml"]` (a chave do setuptools é o nome do pacote).
 - Como a nota previa, o `rules_version()` **não** inclui o `rulebook/` (entra na troca) e a data de referência é 2024-10-01. Um teste confere que o valor começa **exatamente** em 2024-01-01 (31/12/2023 dá `NoValueInForce`).
-- O rastro mantém o resultado bruto e marca `superseded_by` (a cadeia "senão" do campo), o que torna o rastro **idêntico em conteúdo** ao do K2 (teste de equivalência).
+- O rastro mantém o resultado bruto e marca `superseded_by` (a cadeia "senão" do campo), o que torna o rastro **idêntico em conteúdo** ao do módulo de educação (teste de equivalência).
 - **Soma em ponto flutuante** (acréscimo da revisão): a soma usa a mesma adição do Python que o motor atual, e a regressão cobre os limites exatos de cada sexo (cada limite, menos e mais 0,01, e somas que caem no limite), pares em décimos (de 90,0 a 139,9) e 60 pares por limite em passos de 0,1: **0 divergências**.
 - O **teste de isolamento** (acréscimo da revisão) é automático: nenhum módulo do pacote fora de `rulebook/` o importa, nenhuma rota nem o OpenAPI o mencionam, e o web não o referencia.
 - Comando maior, fora do CI: `python -m para_triage.rulebook regress --seeds 20 --per-label 400`.
@@ -298,9 +298,9 @@ Em relação ao protótipo do experimento, as **novas** são 2 (parâmetro por c
 
 # Adendo: etapa 3, os grupos de amputação (nota de desenho)
 
-**Estado:** proposta para revisão (ramo `feature/rulebook-3-design`, só documento). Nada disto está implementado. **Veredito sobre a regra de parada: não acionada no desenho.** A via de força, amplitude e diferença de perna do `limb_standing` **cabe no formato sem uma linguagem de expressões geral**, com 7 construções novas pequenas (seção A4) e uma estimativa de **cerca de 350 linhas** de interpretador (limite 500). A estimativa tem incerteza: a da etapa 0 a 2 foi de 300 e deu 258, mas o `limb_standing` é o primeiro grupo com **dois caminhos que se fundem**, e a fusão é a parte nova mais arriscada.
+**Estado:** proposta para revisão (só documento). Nada disto está implementado. **Veredito sobre a regra de parada: não acionada no desenho.** A via de força, amplitude e diferença de perna do `limb_standing` **cabe no formato sem uma linguagem de expressões geral**, com 7 construções novas pequenas (seção A4) e uma estimativa de **cerca de 350 linhas** de interpretador (limite 500). A estimativa tem incerteza: a da etapa 0 a 2 foi de 300 e deu 258, mas o `limb_standing` é o primeiro grupo com **dois caminhos que se fundem**, e a fusão é a parte nova mais arriscada.
 
-**Correção ao relatório da etapa 0 a 2:** o comando padrão da baixa estatura compara **7.539** perfis, não 15.495 como eu escrevi. O número velho era de antes de eu reduzir os pares de soma da varredura (de cerca de 10 mil para 2.283 casos). As 0 divergências valem nos dois tamanhos. Corrigi a seção `Como ficou` desta nota e a descrição da PR #11.
+**Correção ao relatório da etapa 0 a 2:** o comando padrão da baixa estatura compara **7.539** perfis, não 15.495 como constava. O número velho era de antes de reduzirmos os pares de soma da varredura (de cerca de 10 mil para 2.283 casos). As 0 divergências valem nos dois tamanhos. A seção `Como ficou` desta nota foi corrigida.
 
 ## A1. O que verifiquei no motor atual (sem alterar nada)
 
@@ -319,7 +319,7 @@ Um achado que **muda** uma regra do formato: na etapa 0 a 2, o `missing` de um v
 
 ## A2. A tabela de níveis como dado: `limb_prosthesis`
 
-**Ideia:** cada linha da tabela vira **uma regra de decisão** com `when: {equals: {...}}`. A tabela inteira é dado, lida de cima para baixo, e as linhas **ganham o `id` da linha do K2** (`education/trace.py`), o que permite o teste de equivalência do rastro. Não há construção de "tabela" separada.
+**Ideia:** cada linha da tabela vira **uma regra de decisão** com `when: {equals: {...}}`. A tabela inteira é dado, lida de cima para baixo, e as linhas **ganham o `id` da linha do módulo de educação** (`education/trace.py`), o que permite o teste de equivalência do rastro. Não há construção de "tabela" separada.
 
 ```yaml
 rulebook: limb_prosthesis
@@ -350,7 +350,7 @@ decision:                                  # a ordem é a do motor atual
   - {id: levels_missing, when: {any_missing: [lower_left, lower_right, upper_left, upper_right]}, result: {all: insufficient_data}, report_missing: [lower_left, lower_right, upper_left, upper_right], reason: LIMB_LEVELS_MISSING}
   - {id: upper_with_prosthesis, when: {flag: upper_amputation}, result: {all: needs_review}, reason: LIMB_UPPER_WITH_PROSTHESIS}
   - {id: no_lower, when: {flag: no_lower}, result: {all: not_met}, reason: LIMB_NO_LOWER_AMPUTATION}
-  # a tabela de níveis: uma linha por regra (os ids são os do K2)
+  # a tabela de níveis: uma linha por regra (os ids são os do módulo de educação)
   - {id: bilateral_above, when: {equals: {lower_hi: 3, lower_lo: 3}}, result: {classes: {61: meets}, rest: not_met}, reason: LIMB_BILATERAL_ABOVE}
   - {id: bilateral_below, when: {equals: {lower_hi: 2, lower_lo: 2}}, result: {classes: {62: meets}, rest: not_met}, reason: LIMB_BILATERAL_BELOW}
   - {id: unilateral_above, when: {equals: {lower_hi: 3, lower_lo: 0}}, result: {classes: {63: meets}, rest: not_met}, reason: LIMB_UNILATERAL_ABOVE}
@@ -452,11 +452,11 @@ Os `...` marcam o que a implementação preenche com o mesmo padrão das linhas 
 | `limb_prosthesis` | Os níveis (4 × 4 × 3 × 3 = **144 combinações**) × **todas as posições** (as duas do brief, em pé e com prótese, mais cadeira, Petra e ausente) × cada nível escondido; deficiências que não são a do grupo | cerca de **3.300** |
 | `limb_standing`, via de amputação | As 144 combinações × as posições × cada nível escondido | cerca de **3.300** |
 | `limb_standing`, via funcional | Produto de força (0 a 5 e ausente), arco (10 ± 0,01, 0,05 e valores distantes e ausente), diferença de perna (7 ± 0,01, 0,05 e distantes e ausente), lados (ausente, 1, 2 e 3), déficit (ausente, falso e verdadeiro), e as **combinações das três deficiências** (incluindo a presença ou não de `limb_deficiency`) | cerca de **10 a 12 mil** |
-| Fusão | Perfis com **as duas vias** ao mesmo tempo (níveis × medidas funcionais), com níveis ausentes, e a amostra do K2 com cada medida escondida | cerca de **3.000** |
+| Fusão | Perfis com **as duas vias** ao mesmo tempo (níveis × medidas funcionais), com níveis ausentes, e a amostra do módulo de educação com cada medida escondida | cerca de **3.000** |
 
 **Meta: 0 divergências** de `status` e `missing`, por classe, contra `RuleEngine.evaluate`. No `pytest`, as partes menores inteiras e a funcional **em amostra** (cerca de 4 mil perfis por grupo, como combinado); o produto inteiro roda por um comando à parte, fora do CI: `python -m para_triage.rulebook regress --exhaustive`.
 
-**Outros testes:** a equivalência do rastro com o K2 nas linhas da tabela (o `id` da linha é o `id` do K2; mesmos níveis e mesma conclusão); `needs_review` e `borderline` agora **exercidos de verdade** pelos grupos; a paridade de que não há duplicata no catálogo (os níveis não têm `criteria` em `classes.yaml`); o isolamento (nada importa o pacote); o teste das 500 linhas; o vocabulário fechado, atualizado com as 7 construções e a regra "uma única negação".
+**Outros testes:** a equivalência do rastro com o módulo de educação nas linhas da tabela (o `id` da linha é o `id` do módulo de educação; mesmos níveis e mesma conclusão); `needs_review` e `borderline` agora **exercidos de verdade** pelos grupos; a paridade de que não há duplicata no catálogo (os níveis não têm `criteria` em `classes.yaml`); o isolamento (nada importa o pacote); o teste das 500 linhas; o vocabulário fechado, atualizado com as 7 construções e a regra "uma única negação".
 
 ## A6. Estimativa
 
@@ -469,11 +469,11 @@ Os `...` marcam o que a implementação preenche com o mesmo padrão das linhas 
 | Regressão exaustiva e testes | `compare.py` +80; testes cerca de 250 | 1 dia |
 | **Total** | | **3 a 4 dias** (faixa de 2 a 6) |
 
-**Ordem proposta:** `limb_prosthesis` primeiro (só `derived`, `eq/ne`, `equals`, `report_missing`: 4 das 7 construções, e a tabela inteira como dado), **uma PR**; depois `limb_standing` (porta, vias e fusão), **outra PR**. Cada uma com a sua regressão.
+**Ordem proposta:** `limb_prosthesis` primeiro (só `derived`, `eq/ne`, `equals`, `report_missing`: 4 das 7 construções, e a tabela inteira como dado), **uma etapa**; depois `limb_standing` (porta, vias e fusão), **outra etapa**. Cada uma com a sua regressão.
 
 ## A7. O que ficaria de fora
 
-- **O K2 e o K18 não trocam** de rastro: só o teste de equivalência nas linhas da tabela. Os casos do K2 continuam só de amputação por nível; **a via funcional não tem rastro no K2**.
+- **O módulo de educação e o guia não trocam** de rastro: só o teste de equivalência nas linhas da tabela. Os casos do módulo de educação continuam só de amputação por nível; **a via funcional não tem rastro no módulo de educação**.
 - **Cadeira (51 a 57), neuro e Petra**, a **classe 20** com idade (R12) e os provisórios: etapas 4 e 5.
 - **Força e amplitude dos membros superiores**: o motor atual **não as implementa**; o livro de regras também não.
 - **Provas e equipamentos**; o espanhol; a troca do `RuleEngine`.
@@ -485,19 +485,19 @@ Os `...` marcam o que a implementação preenche com o mesmo padrão das linhas 
 |---|---|
 | **A fusão das vias** reproduzir mal o `merge` do motor (empate, `missing`) | Regressão com as duas vias ao mesmo tempo, níveis ausentes incluídos; a regra de empate escrita no teste |
 | **`report_missing` esconder campos** que o motor reporta (ou reportar a mais) | Regressão compara `missing` por classe (já compara); as sondas do motor viram casos de teste nomeados |
-| **Tabela como regras** ficar longa e difícil de rever | Uma linha por regra, `id` do K2, ordem igual à do motor; o teste exaustivo é a rede |
+| **Tabela como regras** ficar longa e difícil de rever | Uma linha por regra, `id` do módulo de educação, ordem igual à do motor; o teste exaustivo é a rede |
 | **A linguagem crescer** (7 construções em um grupo só) | Vocabulário fechado por teste; a regra de parada; as construções são pequenas e **nenhuma é uma expressão** |
 | **Três números só no motor** (2, 10, 7) passarem a ter uma cópia no YAML | Eles **não estão no catálogo**, então não há cópia dupla; ficam só no YAML, com fonte e status; a regressão os fixa |
 | **Domínios** (`domains`) desatualizados | Um teste confere que os domínios incluem todo valor que o `Profile` aceita para esses campos |
-| **Subestimar o `limb_standing`** | A estimativa tem faixa larga (2 a 6 dias) e a ordem proposta deixa o grupo difícil para a segunda PR |
+| **Subestimar o `limb_standing`** | A estimativa tem faixa larga (2 a 6 dias) e a ordem proposta deixa o grupo difícil para a segunda etapa |
 
 ## A9. Dúvidas para a arquitetura
 
-1. **Linhas da tabela como regras de decisão** (uma construção a menos, o `id` do K2 em cada linha) ou uma construção `table` própria? Recomendo as **regras**.
+1. **Linhas da tabela como regras de decisão** (uma construção a menos, o `id` do módulo de educação em cada linha) ou uma construção `table` própria? Recomendo as **regras**.
 2. **`report_missing`** como regra de formato (omitido: todos os ausentes). Aceita?
 3. **`domains`** no YAML do grupo (metadado só das ferramentas) ou em um arquivo de ferramentas à parte? Recomendo no YAML, perto das medidas.
 4. **`merge: best_status`** como valor fixo (única fusão que o motor atual usa). Aceita não generalizar?
-5. **Uma PR por grupo** (prótese, depois em pé) ou uma só? Recomendo duas.
+5. **Uma etapa por grupo** (prótese, depois em pé) ou uma só? Recomendo duas.
 6. Os três limites da via funcional (2, 10 e 7) ficam **só no YAML** (não estão no catálogo). Aceita?
 7. **Regressão exaustiva no `pytest`**: as partes menores inteiras e a funcional em amostra (cerca de 4 mil por grupo); o produto inteiro em `regress --exhaustive`, fora do CI. Aceita?
 
@@ -507,7 +507,7 @@ Os `...` marcam o que a implementação preenche com o mesmo padrão das linhas 
 
 O adendo foi aprovado; esta é a primeira das duas implementações (a segunda, `limb_standing`, vem depois). O motor atual continua sendo o padrão e nada fora de `rulebook/` importa o pacote.
 
-**O que há:** `data/groups/limb_prosthesis.yaml` (107 linhas, 11 testes como dados), 11 códigos novos em `messages/pt.yaml` e `en.yaml`, `domain_cases` em `compare.py`, a opção `--exhaustive` em `__main__.py` e o grupo em `GROUPS`. A tabela de níveis é **uma regra de decisão por linha**, com o `id` da linha do K2.
+**O que há:** `data/groups/limb_prosthesis.yaml` (107 linhas, 11 testes como dados), 11 códigos novos em `messages/pt.yaml` e `en.yaml`, `domain_cases` em `compare.py`, a opção `--exhaustive` em `__main__.py` e o grupo em `GROUPS`. A tabela de níveis é **uma regra de decisão por linha**, com o `id` da linha do módulo de educação.
 
 **Construções novas (4 das 7 do adendo, mais 2 pequenas):**
 
@@ -530,14 +530,14 @@ Fora do interpretador, `domains` (metadado do grupo para as ferramentas; o inter
 
 - o produto inteiro dos domínios (posição de 4 valores e ausente, quatro medidas de nível e ausentes) com os quatro conjuntos de deficiências (o grupo, o grupo e outra, só outra, nenhuma): 8.000 perfis, 0 divergências;
 - as **144 combinações de níveis nas duas posições** (em pé e com prótese): 288 perfis, 0 divergências;
-- a amostra do K2 de 3 sementes com cada medida escondida, e níveis fora do domínio (-1 e 4);
+- a amostra do módulo de educação de 3 sementes com cada medida escondida, e níveis fora do domínio (-1 e 4);
 - as sondas do motor viram testes nomeados: posição ausente pede só a posição; outra posição é `not_met` sem pedir nada **mesmo com níveis faltando**; níveis faltantes na ordem dos campos;
 - todo estado que o grupo pode dar é dado por algum perfil (só o `not_implemented` fica sem uso real);
 - uma linha errada da tabela é detectada (exatamente 2 divergências);
-- cada linha é a linha do K2 (mesmo `id`, mesma conclusão, mesmo texto da última etapa);
+- cada linha é a linha do módulo de educação (mesmo `id`, mesma conclusão, mesmo texto da última etapa);
 - os testes do interpretador usam nomes inventados para `max`, `min`, `eq`, `ne`, `equals`, `report_missing` e grupo sem critérios.
 
-**Regressão exaustiva** (`python -m para_triage.rulebook regress --group limb_prosthesis --exhaustive`, 6 minutos): **288.000 perfis, 0 divergências**. São 20 sementes de 400 perfis por classe do K2 (completos, com cada uma das cinco medidas escondida e com todas escondidas: 40.000 perfis em cada uma das sete formas) mais o produto inteiro dos domínios (2.000 com o grupo declarado e 6.000 com outras deficiências). O comando padrão (5 sementes de 40 por classe, mais os 2.000 do produto) leva cerca de 6 segundos: 9.000 perfis, 0 divergências.
+**Regressão exaustiva** (`python -m para_triage.rulebook regress --group limb_prosthesis --exhaustive`, 6 minutos): **288.000 perfis, 0 divergências**. São 20 sementes de 400 perfis por classe do módulo de educação (completos, com cada uma das cinco medidas escondida e com todas escondidas: 40.000 perfis em cada uma das sete formas) mais o produto inteiro dos domínios (2.000 com o grupo declarado e 6.000 com outras deficiências). O comando padrão (5 sementes de 40 por classe, mais os 2.000 do produto) leva cerca de 6 segundos: 9.000 perfis, 0 divergências.
 
 ---
 
@@ -564,9 +564,9 @@ Os +26 do interpretador incluem a passagem do avaliador para uma especificação
 
 **(Fechada na etapa 3c, abaixo.) Uma diferença conhecida, fora do contrato:** com `lower_limb_sides_affected` fora de 1 e 2 (por exemplo 3), o motor atual pede o campo dos lados em `missing`; o livro de regras dá o mesmo **status** mas não pede nada, porque `report_missing` só lista o que de fato falta. A API só aceita 1 ou 2 (`Field(ge=1, le=2)`), então isso não é alcançável por ela. Está num teste nomeado. Corrigir pede uma forma incondicional de `report_missing` (uma construção a mais) e fica como pergunta para a arquitetura.
 
-**Regressão:** os produtos de `domains` por via e das duas vias juntas, a amostra do K2 com cada medida escondida, as 144 combinações de níveis nas duas posições, a varredura dos três limites (7.938 perfis) e a fusão com níveis ausentes. Ver a PR para os números da execução exaustiva.
+**Regressão:** os produtos de `domains` por via e das duas vias juntas, a amostra do módulo de educação com cada medida escondida, as 144 combinações de níveis nas duas posições, a varredura dos três limites (7.938 perfis) e a fusão com níveis ausentes. Os números da execução exaustiva estão na seção do grupo.
 
-**Regressão exaustiva** (`python -m para_triage.rulebook regress --group limb_standing --exhaustive`, 22 minutos): **1.012.720 perfis, 0 divergências.** São 20 sementes de 400 perfis por classe do K2, em 11 formas (completos e com cada uma das dez medidas escondida: 64.000 em cada), mais: a via de amputação sozinha (4.000: o produto de 5 posições e 4 níveis, cada um com seus valores e ausente, com o grupo declarado e com as quatro deficiências), a via funcional sozinha (40.320: posições, força de 0 a 5, uma grade em volta de cada limite do arco e da perna, lados, déficit), as **duas vias juntas** (194.400: os 400 pares de níveis, com ausentes, contra 243 combinações dos valores em volta dos limites, com e sem a terceira deficiência) e outras deficiências (6.000). O comando padrão (cerca de 25 segundos) dá 30.092 perfis, 0 divergências.
+**Regressão exaustiva** (`python -m para_triage.rulebook regress --group limb_standing --exhaustive`, 22 minutos): **1.012.720 perfis, 0 divergências.** São 20 sementes de 400 perfis por classe do módulo de educação, em 11 formas (completos e com cada uma das dez medidas escondida: 64.000 em cada), mais: a via de amputação sozinha (4.000: o produto de 5 posições e 4 níveis, cada um com seus valores e ausente, com o grupo declarado e com as quatro deficiências), a via funcional sozinha (40.320: posições, força de 0 a 5, uma grade em volta de cada limite do arco e da perna, lados, déficit), as **duas vias juntas** (194.400: os 400 pares de níveis, com ausentes, contra 243 combinações dos valores em volta dos limites, com e sem a terceira deficiência) e outras deficiências (6.000). O comando padrão (cerca de 25 segundos) dá 30.092 perfis, 0 divergências.
 
 ---
 
@@ -605,9 +605,9 @@ Primeiro grupo cuja variante muda um parâmetro. O motor atual continua sendo o 
 
 **O adaptador da regressão.** O motor só conhece o booleano `onset_before_22`; o livro de regras lê `onset_age`. Para comparar sem mexer no motor, `compare.py` declara um adaptador: **verdadeiro vira 21, falso vira 22, ausente fica ausente** (nas duas direções: uma idade abaixo de 22 vira verdadeiro), e o campo que o motor lista como faltante, `onset_before_22`, é traduzido de volta para `onset_age` ao comparar o `missing`. **O que a regressão não prova:** as idades entre 18 e 21 e a fronteira, porque o motor não as representa (o adaptador as lê pela própria regra de 22, o que seria circular). Elas têm **testes próprios, com o resultado escrito à mão**, nas duas variantes: com as outras condições atendidas, `cpb-2024` dá `meets` em 17, 18, 19 e 21 e `not_met` em 22 e 23; `wpa-2023` dá `meets` só em 17 e `not_met` de 18 em diante; a idade ausente pede `onset_age` nas duas.
 
-**Regressão:** o produto inteiro dos domínios (QI em 40, 74, 75, 76, 120 e ausente; limitação adaptativa; idade em 21, 22 e ausente), com o grupo declarado e com outras deficiências (`not_applicable`), a amostra do K2 com cada medida escondida, e sondas nomeadas do motor. O grupo dá `meets`, `not_met`, `insufficient_data` e `not_applicable`; **não** dá `borderline`, `needs_review` nem `not_implemented`. Padrão: 2.054 perfis, 0 divergências.
+**Regressão:** o produto inteiro dos domínios (QI em 40, 74, 75, 76, 120 e ausente; limitação adaptativa; idade em 21, 22 e ausente), com o grupo declarado e com outras deficiências (`not_applicable`), a amostra do módulo de educação com cada medida escondida, e sondas nomeadas do motor. O grupo dá `meets`, `not_met`, `insufficient_data` e `not_applicable`; **não** dá `borderline`, `needs_review` nem `not_implemented`. Padrão: 2.054 perfis, 0 divergências.
 
-**Regressão exaustiva do grupo** (`regress --group intellectual --exhaustive`): **80.216 perfis, 0 divergências** (20 sementes de 400 perfis por classe do K2, em cinco formas: 16.000 em cada, mais o produto: 54 com o grupo e 162 com outras deficiências).
+**Regressão exaustiva do grupo** (`regress --group intellectual --exhaustive`): **80.216 perfis, 0 divergências** (20 sementes de 400 perfis por classe do módulo de educação, em cinco formas: 16.000 em cada, mais o produto: 54 com o grupo e 162 com outras deficiências).
 
 **Diff `cpb-2024` contra `wpa-2023`** (`python -m para_triage.rulebook diff --group intellectual --a cpb-2024 --b wpa-2023`). Muda só por causa da idade, e **o número depende da idade que se supõe para quem tem "início antes dos 22"**, que a amostra e o perfil atual não têm:
 
@@ -644,9 +644,9 @@ Primeiro dos três grupos provisórios. O motor atual continua sendo o padrão e
 4. Os **três tipos de deficiência** (hipertonia, ataxia, atetose) **não são distinguidos**: qualquer um torna o grupo aplicável e o resultado é o mesmo.
 5. As contradições dão `borderline` nas **duas** classes, sem olhar a gravidade.
 
-**Regressão:** o produto inteiro dos domínios (posição de 4 valores, relatório, gravidade de 0 a 3, transferência, caminhada e amarração, cada um também ausente) com o grupo declarado e com outras deficiências (`not_applicable`); cada um dos três tipos sozinho; a amostra do K2 com cada medida escondida; sondas nomeadas, uma por ramo. Padrão: 8.425 perfis, 0 divergências.
+**Regressão:** o produto inteiro dos domínios (posição de 4 valores, relatório, gravidade de 0 a 3, transferência, caminhada e amarração, cada um também ausente) com o grupo declarado e com outras deficiências (`not_applicable`); cada um dos três tipos sozinho; a amostra do módulo de educação com cada medida escondida; sondas nomeadas, uma por ramo. Padrão: 8.425 perfis, 0 divergências.
 
-**Regressão exaustiva** (`regress --group frame_runner --exhaustive`, 8 minutos): **264.100 perfis, 0 divergências** (20 sementes de 400 perfis por classe do K2, em oito formas: 32.000 em cada, mais o produto: 2.025 com o grupo e 6.075 com outras deficiências). Suíte: 513 testes passam.
+**Regressão exaustiva** (`regress --group frame_runner --exhaustive`, 8 minutos): **264.100 perfis, 0 divergências** (20 sementes de 400 perfis por classe do módulo de educação, em oito formas: 32.000 em cada, mais o produto: 2.025 com o grupo e 6.075 com outras deficiências). Suíte: 513 testes passam.
 
 ---
 
@@ -675,9 +675,9 @@ Segundo dos três grupos provisórios. O motor atual continua sendo o padrão e 
 5. **As quatro deficiências não se distinguem**, e os **níveis de amputação não são lidos**: um amputado sentado é julgado só pela função (item 18 da cobertura: sem campos próprios).
 6. Perna **normal** dá `not_met` em tudo, sem pedir nada.
 
-**Regressão:** o produto dos descritores (posição de 4 valores, braço, tronco, perna, cada um também ausente) com o grupo e com outras deficiências, cada uma das quatro deficiências sozinha, o nível do tornozelo por todas as combinações das três medidas em volta dos limites (64), a amostra do K2 com cada medida escondida, e sondas nomeadas, uma por ramo. Padrão: 21.199 perfis, 0 divergências. Uma correção em `compare.py` que esta etapa pediu: o produto de um grupo sem vias passava a usar só as medidas listadas em `domains`; agora as demais (os números comparados com um limite) entram com uma grade em volta do limite, como nos grupos com vias. Os grupos anteriores têm todas as medidas em `domains` e os mesmos totais de perfis de antes.
+**Regressão:** o produto dos descritores (posição de 4 valores, braço, tronco, perna, cada um também ausente) com o grupo e com outras deficiências, cada uma das quatro deficiências sozinha, o nível do tornozelo por todas as combinações das três medidas em volta dos limites (64), a amostra do módulo de educação com cada medida escondida, e sondas nomeadas, uma por ramo. Padrão: 21.199 perfis, 0 divergências. Uma correção em `compare.py` que esta etapa pediu: o produto de um grupo sem vias passava a usar só as medidas listadas em `domains`; agora as demais (os números comparados com um limite) entram com uma grade em volta do limite, como nos grupos com vias. Os grupos anteriores têm todas as medidas em `domains` e os mesmos totais de perfis de antes.
 
-**Regressão exaustiva** (`regress --group wheelchair --exhaustive`, 42 minutos): **1.723.200 perfis, 0 divergências.** São 20 sementes de 400 perfis por classe do K2, em nove formas (completos, com cada uma das sete medidas escondida e com todas: 72.000 em cada), mais o produto inteiro dos descritores com a grade do tornozelo: 268.800 com o grupo declarado e 806.400 com as quatro deficiências juntas, uma delas mais outra, outras e nenhuma. Suíte: 537 testes passam.
+**Regressão exaustiva** (`regress --group wheelchair --exhaustive`, 42 minutos): **1.723.200 perfis, 0 divergências.** São 20 sementes de 400 perfis por classe do módulo de educação, em nove formas (completos, com cada uma das sete medidas escondida e com todas: 72.000 em cada), mais o produto inteiro dos descritores com a grade do tornozelo: 268.800 com o grupo declarado e 806.400 com as quatro deficiências juntas, uma delas mais outra, outras e nenhuma. Suíte: 537 testes passam.
 
 ---
 
@@ -685,7 +685,7 @@ Segundo dos três grupos provisórios. O motor atual continua sendo o padrão e 
 
 Terceiro e último dos grupos provisórios. O motor atual continua sendo o padrão e nada fora de `rulebook/` o importa. **Nada foi corrigido:** o grupo reproduz `evaluate_neuro` (`docs/rules_coverage.md`, itens 13 a 15), que o próprio motor chama de leitura nossa do livreto. Com ele, **os oito grupos do motor têm paridade** no livro de regras.
 
-**O que há:** `data/groups/neuro.yaml` (19 testes como dados), 23 códigos de razão em pt e en, o grupo em `GROUPS`, e duas construções novas (abaixo). Em `compare.py`: o amostrador do K2 dos dois grupos de postura (`neuro_seated` e `neuro_standing`) e os conjuntos de deficiências do produto (`impairment_sets`).
+**O que há:** `data/groups/neuro.yaml` (19 testes como dados), 23 códigos de razão em pt e en, o grupo em `GROUPS`, e duas construções novas (abaixo). Em `compare.py`: o amostrador do módulo de educação dos dois grupos de postura (`neuro_seated` e `neuro_standing`) e os conjuntos de deficiências do produto (`impairment_sets`).
 
 **Duas construções novas** (a 28ª e a 29ª), as menores que cobrem o que o motor faz:
 
@@ -714,7 +714,7 @@ Terceiro e último dos grupos provisórios. O motor atual continua sendo o padr�
 8. **Quadriplegia ou triplegia em pé e moderado dá `needs_review` mesmo misturada com outros tipos.**
 9. O motor trata o conjunto de tipos só pela interseção com os três (hipertonia, ataxia, atetose); as outras deficiências declaradas não contam.
 
-**Regressão:** o produto inteiro dos descritores (posição de 4 valores, relatório, gravidade, propulsão, distribuição, cada um também ausente) para cada um dos dez conjuntos de tipos, mais três conjuntos de outras deficiências; a amostra do K2 das duas posturas com cada medida escondida; uma sonda nomeada por ramo; e a detecção de uma classe errada, de um `scope` removido e de uma ordem trocada. Padrão: 32.750 perfis, 0 divergências.
+**Regressão:** o produto inteiro dos descritores (posição de 4 valores, relatório, gravidade, propulsão, distribuição, cada um também ausente) para cada um dos dez conjuntos de tipos, mais três conjuntos de outras deficiências; a amostra do módulo de educação das duas posturas com cada medida escondida; uma sonda nomeada por ramo; e a detecção de uma classe errada, de um `scope` removido e de uma ordem trocada. Padrão: 32.750 perfis, 0 divergências.
 
 ### O que falta para a troca do `RuleEngine`
 
@@ -723,13 +723,13 @@ Cobertura **por grupo**: completa. Os oito grupos (visual, baixa estatura, `inte
 1. **O motor montado.** Nenhum código reúne os oito livros num `EligibilityResult` (grupo a grupo, na ordem do catálogo, com `candidates`, `primary_class` e `meets` que a geração de dados, a API e o relatório usam). Falta também **comparar o motor inteiro** (todas as classes do perfil de uma vez), não só grupo a grupo.
 2. **O perfil como medidas e os veredictos como objetos do motor.** Hoje `compare.py` traduz o `Profile` em medidas (e os enums em inteiros e textos) e o resultado em tuplas. Para a troca é preciso um adaptador **de produção**, e nele a decisão já aberta do **`onset_age`** (R12): o perfil só tem o booleano `onset_before_22`, e a variante `wpa-2023` só faz sentido com a idade.
 3. **As razões.** O motor devolve frases em inglês em `Verdict.reasons`; a API, o relatório e sua guarda de fidelidade as consomem. O livro de regras devolve **códigos** (com textos pt e en). É preciso decidir se o texto sai do livro (e a guarda passa a conferir códigos) ou se o motor montado produz as frases do motor atual.
-4. **`rules_version()`** não inclui `rulebook/`: na troca ele passa a incluir, e o JSON de transparência e o guia (K11 e K18) mudam de hash e precisam ser regerados.
-5. **Os rastros do K2 e do K18** (`education/trace.py`) são próprios e seguem assim; só as tabelas de níveis têm teste de equivalência. Trocar a fonte do rastro é outra decisão.
+4. **`rules_version()`** não inclui `rulebook/`: na troca ele passa a incluir, e o JSON de transparência e o guia mudam de hash e precisam ser regerados.
+5. **Os rastros do módulo de educação e do guia** (`education/trace.py`) são próprios e seguem assim; só as tabelas de níveis têm teste de equivalência. Trocar a fonte do rastro é outra decisão.
 6. **Os números duplicados:** visual e baixa estatura têm os limites no livro e em `classes.yaml`; hoje um teste de paridade os mantém iguais. Na troca, a fonte única precisa ser escolhida.
 7. **Desempenho e carga:** `Rulebook.load` lê o YAML a cada chamada; um motor montado precisa guardar os livros carregados (a medida de cerca de 1 ms por perfil é do motor mais o livro juntos).
 8. **Decisões de conteúdo que a troca herdaria:** a fronteira dos 22 anos (não confirmada), os grupos provisórios (a matriz da especialista os substitui) e os comportamentos estranhos reproduzidos, listados nas seções das etapas 5a, 5b e 5c.
 
-**Regressão exaustiva** (`regress --group neuro --exhaustive`, 16 minutos): **584.375 perfis, 0 divergências.** São 20 sementes de 400 perfis por classe do K2 de cada postura, em sete formas (completos, com cada uma das cinco medidas escondida e com todas: 80.000 em cada), mais o produto inteiro dos descritores: 18.750 com os dez conjuntos de tipos e 5.625 com outras deficiências. Suíte: 566 testes passam.
+**Regressão exaustiva** (`regress --group neuro --exhaustive`, 16 minutos): **584.375 perfis, 0 divergências.** São 20 sementes de 400 perfis por classe do módulo de educação de cada postura, em sete formas (completos, com cada uma das cinco medidas escondida e com todas: 80.000 em cada), mais o produto inteiro dos descritores: 18.750 com os dez conjuntos de tipos e 5.625 com outras deficiências. Suíte: 566 testes passam.
 
 ---
 
@@ -749,11 +749,11 @@ Um motor completo no pacote `rulebook/` que reúne os oito livros e responde com
 2. As `reasons` são **códigos** (textos em pt e en por `messages.message`), não as frases em inglês do motor. A comparação **não** as compara (ver o relatório abaixo).
 3. A idade de início é a do adaptador: **verdadeiro vira 21, falso vira 22, ausente fica ausente.** O campo faltante da classe 20 se chama `onset_age` no motor em sombra e `onset_before_22` no atual; a comparação traduz o nome. **Esta etapa não decide o `onset_age` no perfil (R12).**
 
-**Regressão do motor inteiro** (`python -m para_triage.rulebook regress --engine [--exhaustive]`): para cada perfil, as **33 classes de uma vez** pelos dois motores, comparando a **ordem das classes**, o `status` e o `missing` de cada uma, `meets`, `primary_class` e `candidates`. As entradas: (a) **tudo o que a regressão por grupo gera**, cada caso agora pelo motor inteiro; (b) **perfis com as deficiências de grupos diferentes ao mesmo tempo**, que a regressão por grupo não exerce: para cada uma das 247 combinações de dois a oito grupos, perfis montados juntando medidas e deficiências de casos de cada grupo (10 por combinação no padrão, 200 no exaustivo); (c) a amostra do K2 dos oito grupos com cada medida escondida, que já vem em (a). Padrão: **119.042 perfis, 0 divergências.** Exaustivo (25 minutos): **4.519.364 perfis, 0 divergências**, entre eles 49.400 perfis misturados (dois a oito grupos). Um teste confirma que a regressão vê um motor em sombra errado (um limite deslocado dá divergências).
+**Regressão do motor inteiro** (`python -m para_triage.rulebook regress --engine [--exhaustive]`): para cada perfil, as **33 classes de uma vez** pelos dois motores, comparando a **ordem das classes**, o `status` e o `missing` de cada uma, `meets`, `primary_class` e `candidates`. As entradas: (a) **tudo o que a regressão por grupo gera**, cada caso agora pelo motor inteiro; (b) **perfis com as deficiências de grupos diferentes ao mesmo tempo**, que a regressão por grupo não exerce: para cada uma das 247 combinações de dois a oito grupos, perfis montados juntando medidas e deficiências de casos de cada grupo (10 por combinação no padrão, 200 no exaustivo); (c) a amostra do módulo de educação dos oito grupos com cada medida escondida, que já vem em (a). Padrão: **119.042 perfis, 0 divergências.** Exaustivo (25 minutos): **4.519.364 perfis, 0 divergências**, entre eles 49.400 perfis misturados (dois a oito grupos). Um teste confirma que a regressão vê um motor em sombra errado (um limite deslocado dá divergências).
 
 **Cobertura de classes (teste):** a união das classes dos oito livros é exatamente o conjunto das 33 classes do `classes.yaml`, sem repetição e sem falta, e o grupo de cada classe é o mesmo; o `applies_to` de cada livro é o conjunto de deficiências do grupo no catálogo.
 
-**Interpretador: não cresceu** (313 linhas pelo critério do teste das 500 linhas, 342 brutas, as mesmas da 5c), nenhuma construção nova: **29**. **`rules_version()` idêntico ao da `main`** (`rules-25f1beb46158`, o mesmo `sha256`, calculado a partir dos arquivos de `origin/main`); nenhum arquivo de `rules/`, `api/`, `report/`, `education/`, `guide/`, `web/`, `provenance_info/`, `classes.yaml` nem `pyproject.toml` mudou, então os hashes do K11 e do K18 não mudam.
+**Interpretador: não cresceu** (313 linhas pelo critério do teste das 500 linhas, 342 brutas, as mesmas da 5c), nenhuma construção nova: **29**. **`rules_version()` idêntico ao da `main`** (`rules-25f1beb46158`, o mesmo `sha256`, calculado a partir dos arquivos de `origin/main`); nenhum arquivo de `rules/`, `api/`, `report/`, `education/`, `guide/`, `web/`, `provenance_info/`, `classes.yaml` nem `pyproject.toml` mudou, então os hashes do módulo de transparência e do guia não mudam.
 
 ### O relatório das razões (a decisão do item 3 da troca)
 
@@ -781,7 +781,7 @@ Um motor completo no pacote `rulebook/` que reúne os oito livros e responde com
 
 ### Desempenho (microssegundos por perfil, motor inteiro, livros carregados uma vez)
 
-Perfil completo típico de cada grupo (o primeiro da amostra do K2; 3.000 repetições; o motor em sombra avalia os oito livros em cada chamada, como o atual avalia os oito grupos):
+Perfil completo típico de cada grupo (o primeiro da amostra do módulo de educação; 3.000 repetições; o motor em sombra avalia os oito livros em cada chamada, como o atual avalia os oito grupos):
 
 | Grupo do perfil | `RuleEngine` | `ShadowEngine` | |
 |---|---|---|---|
@@ -796,13 +796,13 @@ Perfil completo típico de cada grupo (o primeiro da amostra do K2; 3.000 repeti
 
 Média: 40 µs contra 138 µs por perfil (3,4x). Na regressão exaustiva inteira (4,5 milhões de perfis, com o computador também ocupado por outras tarefas): 240 s o motor atual e 767 s o motor em sombra, 53 µs e 170 µs por perfil. Não há meta de tempo; é informação para a decisão da troca.
 
-### O que falta para a troca do `RuleEngine`, depois desta PR
+### O que falta para a troca do `RuleEngine`, depois desta etapa
 
 1. ~~O motor montado~~ e ~~a carga dos livros~~: **feitos** (esta etapa).
 2. **O `onset_age` no perfil (R12):** o motor em sombra usa a ponte 21 e 22; a variante `wpa-2023` só faz sentido com a idade verdadeira. Decisão que invalida checkpoints e muda a API.
 3. **As razões** (a tabela acima): códigos com o valor do rastro, ou um adaptador para as frases do motor. Decisão que envolve a guarda de fidelidade do relatório e a API.
-4. **`rules_version()`** precisa passar a incluir `rulebook/` (e o JSON de transparência e o guia, K11 e K18, são regerados com o novo id).
-5. **Os rastros do K2 e do K18** (`education/trace.py`) seguem próprios; só as tabelas de níveis têm teste de equivalência.
+4. **`rules_version()`** precisa passar a incluir `rulebook/` (e o JSON de transparência e o guia, módulo de transparência e guia, são regerados com o novo id).
+5. **Os rastros do módulo de educação e do guia** (`education/trace.py`) seguem próprios; só as tabelas de níveis têm teste de equivalência.
 6. **Os números duplicados** do visual e da baixa estatura (livro e `classes.yaml`): escolher a fonte única.
 7. **Decisões de conteúdo herdadas:** a fronteira dos 22 anos (não confirmada), os grupos provisórios (a matriz da especialista os substitui) e os comportamentos estranhos reproduzidos, listados nas etapas 5a, 5b e 5c.
-8. **Trocar o padrão** em si: ligar o motor em sombra à API, ao relatório, ao K2 e ao K18, fora desta PR, com o aval do usuário.
+8. **Trocar o padrão** em si: ligar o motor em sombra à API, ao relatório, ao módulo de educação e ao guia, fora desta etapa, com o aval da equipe.

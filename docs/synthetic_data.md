@@ -58,7 +58,7 @@ Campos faltantes: entre 1% (sexo) e 20% (arco de movimento) por campo, definidos
 - Cada perfil pertence a **um grupo**. Deficiências combinadas (por exemplo, visual + membro) não são geradas.
 - Os valores dentro de cada classe seguem distribuições simples (uniformes e faixas ao redor dos limiares), não dados de atletas reais.
 - `age` não é gerada, porque nenhuma regra a usa.
-- Nos grupos provisórios (encefálicos, Petra, cadeira), o rótulo vem de regras que são a minha leitura da cartilha; os descritores funcionais são amostrados de padrões típicos por faixa (por exemplo, nível medular), com 8% de combinações atípicas na cadeira.
+- Nos grupos provisórios (encefálicos, Petra, cadeira), o rótulo vem de regras que são a nossa leitura da cartilha; os descritores funcionais são amostrados de padrões típicos por faixa (por exemplo, nível medular), com 8% de combinações atípicas na cadeira.
 - Como o rótulo vem de regras sobre as mesmas variáveis, a acurácia máxima possível é limitada só pelo ruído. O ganho esperado do modelo é **calibração e tratamento de dados faltantes**, não superar as regras com dados exatos.
 
 ## Resultado de referência (seed 0, 300 por label, 13.800 linhas)

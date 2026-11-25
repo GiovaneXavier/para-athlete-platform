@@ -24,7 +24,7 @@ DEFAULT_QUIZ_SIZE = 10
 MIXED_SHARES = (("easy", 0.4), ("medium", 0.4), ("hard", 0.2))
 MAX_SEED = 999_999_999
 
-# Difficulty margins (initial values, see docs/educacao.md section 3).
+# Difficulty margins (initial values).
 VISUAL_LOGMAR_MARGIN = 0.25  # logMAR distance from every acuity threshold for an "easy" case
 VISUAL_FIELD_MARGIN = 10.0  # degrees from every field threshold for an "easy" case
 SHORT_STATURE_MARGIN = 0.08  # relative distance from every limit for an "easy" case

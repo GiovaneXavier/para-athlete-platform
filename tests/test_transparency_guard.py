@@ -26,7 +26,7 @@ WINDOW = 200  # characters on each side in which N1 must appear
 
 REGENERATE = (
     "web/public/transparency.json is out of date. Regenerate it with "
-    "`python -m para_triage.transparency.export --runs <path to runs/>` (see docs/transparencia.md)."
+    "`python -m para_triage.transparency.export --runs <path to runs/>`."
 )
 
 

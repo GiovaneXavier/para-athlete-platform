@@ -80,11 +80,11 @@ model.load_state_dict(torch.load("docs/modelo-imagem/semente0.pt", map_location=
 model.eval()
 ```
 
-- **O que foi medido, contra o quê:** a rede é comparada com a **regra clássica de pixels** (sem aprendizado, [`baselines.py`](../src/para_triage/consistency/baselines.py)) e com o **preenchimento do formulário** (completo, com campos faltando, com erros), com quatro hipóteses escritas antes de rodar e o teste aberto uma única vez. Relatório completo, com os limites: [`docs/imagem-contra-formulario-relatorio.md`](imagem-contra-formulario-relatorio.md). Decisão: [`adr/0023`](decisoes/0023-imagem-contra-formulario.md).
+- **O que foi medido, contra o quê:** a rede é comparada com a **regra clássica de pixels** (sem aprendizado, [`baselines.py`](../src/para_triage/consistency/baselines.py)) e com o **preenchimento do formulário** (completo, com campos faltando, com erros), com quatro hipóteses escritas antes de rodar e o teste aberto uma única vez. Relatório completo, com os limites: [`docs/imagem-contra-formulario-relatorio.md`](imagem-contra-formulario-relatorio.md).
 
 ## 3. Os modelos usados para avaliar as imagens (experimento imagem e laudo)
 
-Antes do experimento imagem contra formulário, testamos se **modelos abertos já prontos** conseguem ler esses bonecos e conferi-los com um laudo em texto. **Esses modelos não estão no repositório** (são arquivos de gigabytes, baixados dos repositórios oficiais; ficam fora de propósito). Fonte, versão e SHA-256 de cada arquivo estão na **tabela da seção "Passo A: a seção 6.4, os downloads para o aval do usuário"** do relatório [`docs/consistencia-imagem-laudo-relatorio.md`](consistencia-imagem-laudo-relatorio.md). Em resumo:
+Antes do experimento imagem contra formulário, testamos se **modelos abertos já prontos** conseguem ler esses bonecos e conferi-los com um laudo em texto. **Esses modelos não estão no repositório** (são arquivos de gigabytes, baixados dos repositórios oficiais; ficam fora de propósito). Fonte, versão e SHA-256 de cada arquivo estão na **tabela da seção "Passo A: a seção 6.4, os downloads"** do relatório [`docs/consistencia-imagem-laudo-relatorio.md`](consistencia-imagem-laudo-relatorio.md). Em resumo:
 
 | Papel | Modelo | Fonte | Licença |
 |---|---|---|---|
@@ -118,4 +118,4 @@ python -m imagem_formulario.replicate --first run1 --second run2   # replicaçã
 
 ## 6. Ordem de leitura sugerida
 
-1. Esta página. 2. [`docs/decisoes/19_robustez_e_aprendizado_profundo.md`](decisoes/19_robustez_e_aprendizado_profundo.md): a crítica da banca e o que decidimos fazer. 3. [`docs/consistencia-imagem-laudo-relatorio.md`](consistencia-imagem-laudo-relatorio.md): o experimento imagem e laudo, negativo. 4. [`docs/imagem-contra-formulario-relatorio.md`](imagem-contra-formulario-relatorio.md): o experimento imagem contra formulário, com as quatro hipóteses e os limites.
+1. Esta página. 2. [`docs/consistencia-imagem-laudo-relatorio.md`](consistencia-imagem-laudo-relatorio.md): o experimento imagem e laudo, negativo. 3. [`docs/imagem-contra-formulario-relatorio.md`](imagem-contra-formulario-relatorio.md): o experimento imagem contra formulário, com as quatro hipóteses e os limites.

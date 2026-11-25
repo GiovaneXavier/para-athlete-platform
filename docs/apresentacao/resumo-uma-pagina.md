@@ -14,4 +14,4 @@
 
 **Próximos passos.** Fusão aprendida e rede de ponta a ponta imagem para classe; validação das regras com a especialista; consulta ao CEP; conversa com IPC e CPB.
 
-**Onde está.** Relatórios: `docs/consistencia-imagem-laudo-relatorio.md` (experimento imagem e laudo), `docs/imagem-contra-formulario-relatorio.md` (experimento imagem contra formulário), `docs/rulebook.md` (regras), `docs/decisoes/19_robustez_e_aprendizado_profundo.md` (a crítica e as decisões).
+**Onde está.** Relatórios: `docs/consistencia-imagem-laudo-relatorio.md` (experimento imagem e laudo), `docs/imagem-contra-formulario-relatorio.md` (experimento imagem contra formulário), `docs/rulebook.md` (regras).

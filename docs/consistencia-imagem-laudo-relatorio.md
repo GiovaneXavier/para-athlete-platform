@@ -1,6 +1,6 @@
-# Experimento imagem e laudo: relatório da PR 3 (ramo interno)
+# Experimento imagem e laudo: relatório
 
-**Estado:** **passo A concluído (PR 24) e passo B concluído (ramo ramo interno).** Os downloads do passo A foram feitos depois do aval do usuário e conferidos por tamanho e SHA-256. **Evidência: N1 em tudo** (dado sintético nosso; a palavra "acurácia" só aparece ao lado de N1). Especificação: `docs/consistencia-imagem-laudo.md`.
+**Estado:** **passo A e passo B concluídos.** Os downloads do passo A foram feitos depois do aval da equipe e conferidos por tamanho e SHA-256. **Evidência: N1 em tudo** (dado sintético nosso; a palavra "acurácia" só aparece ao lado de N1). Especificação: `docs/consistencia-imagem-laudo.md`.
 
 **Resultado em uma frase (N1):** com estes modelos pequenos e quantizados, rodando em CPU, **nenhum extrator de imagem leu o nível do membro nem o lado** nos desenhos do nível 1 e do nível 2: o SmolVLM2 respondeu "completo" para todos os membros, o Qwen2.5-VL-7B quase sempre também, e o CLIP ficou no acaso e **não mudou de resposta com a imagem espelhada**. O extrator de laudo (Qwen2.5-1.5B) acertou 33% a 50% por membro. O pipeline completo dá "não confere" em 93% a 99,5% dos pares consistentes, ou seja, **não é melhor que o chute "sempre não confere"**. Isto é um resultado sobre **estes modelos e estes prompts**, não sobre modelos abertos em geral.
 
@@ -36,7 +36,7 @@ Intervalos da v3 (Wilson 95%, bootstrap por imagem 95%): faixa 0 98,7% a 100,0% 
 - **Por fator** (bandas 1 a 3 juntas; acerto da linha de base clássica nos membros com nível conhecido, por intensidade 0, 1, 2 e 3 do fator): aparência 75% / 77% / 37% / 7%; pose 93% / 63% / 37% / 5%; oclusão 80% / 78% / 33% / 3%; iluminação 88% / 64% / 45% / 7%; geometria 80% / 74% / 37% / 5%; fundo 78% / 74% / 34% / 2%; ruído 80% / 70% / 36% / 8%; equipamento 85% / 69% / 38% / 8%. **Estes números NÃO isolam fatores**: cada imagem leva os oito fatores juntos (cada um na faixa ou um abaixo), então os fatores andam juntos. Servem para ver que **todos** acompanham a dificuldade, não para dizer qual pesa mais.
 - **Não prova** que o nível 2 é difícil como uma foto, nem para um modelo de aprendizado profundo; prova só que **não é o boneco limpo** (seção 9 da nota).
 
-## Passo A: a seção 6.4, os downloads para o aval do usuário
+## Passo A: a seção 6.4, os downloads para o aval da equipe
 
 **Nada foi baixado.** Tamanhos, hashes SHA-256 e licenças abaixo foram lidos em 05/11/2026 nas **páginas e APIs públicas** (API de modelos do Hugging Face, API de releases do GitHub, API do PyPI), sem baixar nenhum arquivo. Nenhum item exige conta nem aceite de termos (`gated: False` nos quatro repositórios). Cada linha é **um download**; o aval é pedido **download por download**.
 
@@ -53,7 +53,7 @@ Intervalos da v3 (Wilson 95%, bootstrap por imagem 95%): faixa 0 98,7% a 100,0% 
 
 **Espaço total em disco:** os itens 1 a 7 somam **8.988.512.573 bytes (8,99 GB, 8,37 GiB)**; com o item 8 (estimado), **cerca de 9,3 GB**; o zip do item 1 descompactado ocupa um pouco mais que os 24,7 MB. Há **221,7 GB livres** no disco C:. Os pesos e o ambiente ficam **fora do repositório** (pasta de trabalho local, no `.gitignore`).
 
-**Fora desta lista, de propósito:** as 30 fotos do nível 3 (cerca de 184 MB) **não** entram até o usuário aprovar o manifesto e rever as fotos em tamanho original; Qwen2.5-VL-3B (licença de pesquisa, inconsistente entre as páginas); Gemma, PaliGemma, Phi-3.5-vision, Moondream2, InternVL3 e Florence-2 (seção 6.3 da nota).
+**Fora desta lista, de propósito:** as 30 fotos do nível 3 (cerca de 184 MB) **não** entram até a equipe aprovar o manifesto e rever as fotos em tamanho original; Qwen2.5-VL-3B (licença de pesquisa, inconsistente entre as páginas); Gemma, PaliGemma, Phi-3.5-vision, Moondream2, InternVL3 e Florence-2 (seção 6.3 da nota).
 
 ## Passo B: os modelos rodaram
 
@@ -61,7 +61,7 @@ Código em `spikes/imagem_laudo/` (só `.py`, `.md` e `.txt`; nenhum peso, biná
 
 ### Downloads e o que roda
 
-Os oito itens da tabela do passo A foram baixados **depois do aval do usuário, item a item**, e **os sete arquivos conferem em tamanho e SHA-256** com a tabela. O **llama.cpp `b12125` roda** SmolVLM2-2.2B, Qwen2.5-VL-7B (os dois com imagem) e Qwen2.5-1.5B (texto), **com saída restrita por esquema JSON**, nesta máquina (Core Ultra 5 125H, 15,6 GB de RAM, só CPU), ligado só em `127.0.0.1`. Não foi preciso parar e perguntar por causa de ferramenta. O CLIP roda em `torch` na CPU com o arquivo local (`HF_HUB_OFFLINE=1`).
+Os oito itens da tabela do passo A foram baixados **depois do aval da equipe, item a item**, e **os sete arquivos conferem em tamanho e SHA-256** com a tabela. O **llama.cpp `b12125` roda** SmolVLM2-2.2B, Qwen2.5-VL-7B (os dois com imagem) e Qwen2.5-1.5B (texto), **com saída restrita por esquema JSON**, nesta máquina (Core Ultra 5 125H, 15,6 GB de RAM, só CPU), ligado só em `127.0.0.1`. Não foi preciso parar e perguntar por causa de ferramenta. O CLIP roda em `torch` na CPU com o arquivo local (`HF_HUB_OFFLINE=1`).
 
 ### Tempo e memória medidos (rodadas finais)
 
@@ -77,7 +77,7 @@ Um par imagem e laudo custa então cerca de **28 s** com o SmolVLM2 e **55 s** c
 ### Como a avaliação foi montada
 
 - **Subconjuntos sorteados com semente antes de ver resultado** (`subsets.py`): nível 1, 32 combinações de nível de membro (96 imagens, `eval`) e outras 8 (24 imagens, `dev`), disjuntas; nível 2, 100 imagens `eval` (25 por faixa) e 12 `dev`. O `dev` só serve para olhar o comportamento do prompt; **os números são do `eval`**.
-- **Erro meu na primeira rodada:** usei uma imagem a cada 3 das 144 combinações, e como o último fator (`upper_right`, 3 valores) varia mais depressa, ele ficou **fixo em 0** no subconjunto. Descobri pelo acerto de 100% em `upper_right`, que era artefato. Refiz com sorteio e o `python subsets.py` passou a imprimir as contagens de cada fator. Os resultados dessa primeira rodada ficaram arquivados na pasta local de resultados (`v1`) e **não entram nas tabelas abaixo**.
+- **Erro na primeira rodada:** usei uma imagem a cada 3 das 144 combinações, e como o último fator (`upper_right`, 3 valores) varia mais depressa, ele ficou **fixo em 0** no subconjunto. Descobri pelo acerto de 100% em `upper_right`, que era artefato. Refiz com sorteio e o `python subsets.py` passou a imprimir as contagens de cada fator. Os resultados dessa primeira rodada ficaram arquivados na pasta local de resultados (`v1`) e **não entram nas tabelas abaixo**.
 - **Prompts.** v1 (primeira rodada, descartada): o SmolVLM2 respondeu "tudo 0" em 491 de 494 leituras, o Qwen 7B respondeu `?` e o extrator de laudo respondeu `?` quase sempre. v2 (imagem com campo livre `look` antes das respostas; laudo com dois exemplos escritos à mão) e v3 (imagem pedindo para comparar os dois braços e as duas pernas; laudo como lista de frases "qual membro, qual nível"). **No máximo três tentativas no `dev`; a terceira foi a última.** Decisão: imagens com o v2, laudos com o v3. No `dev`, **ambos os modelos de imagem disseram "membros completos"** em todas as figuras, mesmo pedindo para comparar. O Qwen 7B enxerga cores, mas diz que os comprimentos dos membros diferem "um pouco"; trato como **limite de capacidade e de resolução do modelo**, não de envio da imagem (a imagem chega: ele descreve a cor da camisa).
 - Teste do espelho: cada imagem com exatamente um lado amputado é lida também espelhada (rótulo com os lados trocados). Se a leitura **não muda** com o espelho, o extrator **não sabe o lado**; se muda para o lado errado, é viés.
 - Comparação: **linha de base clássica** (seção anterior; nível 1 99,8%; nível 2 por faixa 100,0% / 81,7% / 51,3% / 7,3%) e o **piso do veredito** ("sempre não confere").
@@ -126,7 +126,7 @@ O texto dos laudos tem erros de digitação plantados (ruído) e frases de vári
 
 **O que mudou.** Só a regra de cadeira de rodas e prótese e o exemplo: "yes" se o laudo diz que usa (usa, faz uso de), "no" se diz que não usa (não usa, sem uso de, sem prótese), `?` só se o laudo não diz nada; o exemplo ganhou "Não usa cadeira de rodas. Faz uso de prótese.". As regras de membro são as da v3 (`spikes/imagem_laudo/prompts.py`, `PROMPTS["v4"]`, só o laudo). Primeiro no `dev` do nível 2 (82 laudos, uma tentativa), depois nos laudos inteiros do `eval`.
 
-**Ressalva de método.** A v4 foi escrita **depois** de eu ter visto os números do `eval` com a v3. Portanto os números da v4 no `eval` mostram que a **correção funciona**, mas **não são um teste limpo** de um prompt escolhido às cegas; o `dev` (82 laudos) foi olhado antes, sem ter sido a origem do defeito.
+**Ressalva de método.** A v4 foi escrita **depois** de termos visto os números do `eval` com a v3. Portanto os números da v4 no `eval` mostram que a **correção funciona**, mas **não são um teste limpo** de um prompt escolhido às cegas; o `dev` (82 laudos) foi olhado antes, sem ter sido a origem do defeito.
 
 | atributo | nível 2, v3 (689 laudos) | nível 2, v4 (689 laudos) | nível 1, v3 (669) | nível 1, v4 (669) |
 |---|---|---|---|---|
@@ -162,7 +162,7 @@ No `dev`, a v4 deu wheelchair 96,3% (79/82) e prosthesis 76,8% (63/82).
 
 - **Para o objetivo do experimento imagem e laudo (conferir imagem e laudo com modelos abertos locais):** com **esta classe de modelo** (VLM de 2 a 7 B quantizado em Q4, CPU, 280x400) e **estes prompts**, a leitura da imagem **não** funciona; o pipeline fica no nível do acaso. A linha de base clássica do nível 1 (99,8%) mostra que o desenho permite ler o nível, só que **um modelo de visão genérico não o lê**.
 - **Não significa** que nenhum modelo aberto serve: não testei modelos maiores, nem float16, nem GPU, nem ajuste fino (a seção 6.3 da nota deixou isso fora de propósito). O limite que vi parece de **capacidade e de resolução** (o Qwen vê cores e diz que os braços diferem "um pouco").
-- **Não é sobre fotografia.** Tudo é N1: desenho sintético, rótulos nossos. O nível 3 (30 fotos) segue **fora** até o usuário aprovar o manifesto e rever as fotos.
+- **Não é sobre fotografia.** Tudo é N1: desenho sintético, rótulos nossos. O nível 3 (30 fotos) segue **fora** até a equipe aprovar o manifesto e rever as fotos.
 - O extrator de laudo **melhorou na negação** com a v4 (nível 2), mas **piorou no silêncio** (nível 1); com um modelo maior, ou com exemplo dos dois casos, **não** foi tentado.
 
 ## O que NÃO foi verificado
@@ -170,8 +170,8 @@ No `dev`, a v4 deu wheelchair 96,3% (79/82) e prosthesis 76,8% (63/82).
 1. **Que os resultados valem para outros modelos.** Só testei SmolVLM2-2.2B Q4_K_M, Qwen2.5-VL-7B Q4_K_M e Qwen2.5-1.5B Q4_K_M. Modelos maiores, outras quantizações e GPU **não foram testados**.
 2. **O Qwen2.5-VL-7B ficou com amostra muito pequena** (24 imagens no nível 1; 20 no nível 2, todas da faixa 0). Os intervalos são largos e **não há leitura dele nas faixas 1 a 3**.
 3. **Prompts.** Foram três versões e, no máximo, três tentativas no `dev`. Um prompt diferente, ou a imagem em maior resolução, poderia render mais; **não foi tentado** (e afinar com o `eval` à vista seria enganar a medida). O prompt do laudo tinha um defeito que vi só na rodada final (negação lida como `?`); a **v4 o corrigiu no nível 2**, mas foi escrita **com o `eval` à vista** (não é teste limpo) e **piorou o nível 1** (silêncio do laudo lido como sim ou não).
-4. **Os tempos** são de um PC compartilhado com o usuário, medidos uma vez, sem repetição em máquina ociosa.
-5. **O nível 3** (fotos reais) **não rodou**: segue fora até o aval do usuário ao manifesto e a revisão das fotos em tamanho original.
+4. **Os tempos** são de um PC compartilhado com outras tarefas, medidos uma vez, sem repetição em máquina ociosa.
+5. **O nível 3** (fotos reais) **não rodou**: segue fora até o aval da equipe ao manifesto e a revisão das fotos em tamanho original.
 6. **A licença de cada peso além do que a página do repositório declara**, o conjunto de treino do OpenCLIP (LAION-2B) e o **binário do llama.cpp** (nem antivírus, nem assinatura; só o SHA-256 do release) **não foram avaliados**.
 7. **O teste do espelho** usa só imagens com exatamente um lado amputado; os outros casos não dizem nada sobre o lado.
 8. **A primeira rodada** (subconjunto com `upper_right` fixo, prompts v1) está arquivada fora do repositório e **não entra nas tabelas**.

@@ -71,8 +71,8 @@ export default function TransparenciaPage() {
           <p className="max-w-3xl">
             Um script lê as pastas de resultados dos experimentos (que ficam na máquina de quem os rodou, fora do git) e grava só os
             agregados em <code className="font-mono text-sm">web/public/transparency.json</code>, com o commit de origem. A página e
-            a API leem esse arquivo; nenhuma delas lê as pastas de resultados. As instruções para regerar estão em{" "}
-            <code className="font-mono text-sm">docs/transparencia.md</code> no repositório.
+            a API leem esse arquivo; nenhuma delas lê as pastas de resultados. O script fica em{" "}
+            <code className="font-mono text-sm">src/para_triage/transparency/export.py</code>.
           </p>
         </section>
       </main>

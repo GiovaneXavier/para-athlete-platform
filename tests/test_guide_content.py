@@ -16,7 +16,7 @@ from para_triage.rules import Impairment, Posture, Profile, Sex
 GUIDE_JSON = REPO_ROOT / "web" / "src" / "content" / "guide.json"
 REGENERATE = (
     "web/src/content/guide.json is out of date. Regenerate it with `python -m para_triage.guide.export`, "
-    "review the diff and commit (see docs/guia.md)."
+    "review the diff and commit."
 )
 
 
