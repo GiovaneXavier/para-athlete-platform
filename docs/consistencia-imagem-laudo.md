@@ -1,6 +1,6 @@
 # Experimento imagem e laudo: conferência entre uma imagem e um laudo (nota de desenho)
 
-**Estado:** PR 1 de 3, de 05/11/2026, **atualizada no mesmo dia depois das respostas do usuário** (seção 11.1). **Só desenho: não há código, não há imagem e não há modelo baixado.** Decisões que sustentam isto: `docs/decisoes/0022-conferencia-boneco-laudo.md`. Contexto da ideia: `docs/decisoes/19_robustez_e_aprendizado_profundo.md`.
+
 
 **Nível de evidência de tudo o que este documento prevê medir: N1.** Os níveis 1 e 2 usam dado sintético; o nível 3 usa rótulos **nossos** sobre fotos, não rótulos de classificador. Nenhum número destes experimentos é validade clínica, e a palavra "acurácia" só aparece aqui ao lado do aviso **N1**.
 
@@ -13,13 +13,11 @@
 5. **Seis erros plantados** (lado trocado, nível errado, região errada, laudo sem a informação, laudo de outra pessoa, ruído sem erro de fato), medidos por nível.
 6. **Três linhas de base** obrigatórias: clássica (no boneco), CLIP zero-shot e chute.
 7. **Modelos candidatos** (licença e tamanho conferidos nas páginas dos modelos, hoje): SmolVLM2-2.2B e Qwen2.5-VL-7B (Apache-2.0) para a imagem; Qwen2.5-1.5B-Instruct (Apache-2.0) para o texto; OpenCLIP LAION ViT-B/32 (MIT) como linha de base. A máquina tem **CPU de 14 núcleos, 15,6 GB de RAM e nenhuma GPU dedicada**: o tempo por imagem é de **segundos a dezenas de segundos** (estimativa, não medida).
-8. **Manifesto candidato do nível 3 entregue nesta PR:** **30 fotos de um só atleta, de 11 fotógrafos (nenhum com mais de 23%)**, licença conferida arquivo a arquivo, `docs/consistencia-imagem-laudo-manifesto-nivel3.csv`. **Os rótulos por lado e por nível ainda não existem:** só rótulos grossos, a partir de miniaturas; **as fotos de cadeira de corrida só servem para o atributo `wheelchair`**; **ainda não há foto confirmada com diferença de membro superior** (seção 4.3).
+8. **Manifesto candidato do nível 3:** **30 fotos de um só atleta, de 11 fotógrafos (nenhum com mais de 23%)**, licença conferida arquivo a arquivo, `docs/consistencia-imagem-laudo-manifesto-nivel3.csv`. **Os rótulos por lado e por nível ainda não existem:** só rótulos grossos, a partir de miniaturas; **as fotos de cadeira de corrida só servem para o atributo `wheelchair`**; **ainda não há foto confirmada com diferença de membro superior** (seção 4.3).
 9. **Nível 2:** WheelPose (código MIT, mas precisa do Unity, e o conjunto de fotos dele sai de vídeos do YouTube) e a biblioteca da Ottobock (acesso fechado: a licença só se lê depois de aceitar termos numa conta) **não passam** na conferência. **Decidido: um nível 2 feito por nós**, com aparência aleatória e variação de pose, oclusão e ruído, e a dificuldade **medida** pela queda da linha de base clássica (seção 4.2).
 10. **As quatro decisões estão registradas na seção 11.1.** **Nada foi baixado e nada será baixado sem o seu aval** (a lista, com nome, fonte e tamanho, está na seção 6.4).
 
 ## 1. Objetivo e limites
-
-A crítica recebida foi que o projeto "se reduz a uma árvore de decisão". O motor de regras **é** uma árvore, de propósito (é o que o torna auditável). A resposta do experimento imagem e laudo é a arquitetura **percepção aprendida mais regras simbólicas**: um modelo aprende a **ler** (imagem e texto), e o **código decide**, de modo que se possa **medir** onde o aprendizado ajuda e onde não ajuda.
 
 **Limites que valem em tudo:**
 
@@ -29,7 +27,7 @@ A crítica recebida foi que o projeto "se reduz a uma árvore de decisão". O mo
 | Nada de inferir saúde, classe ou elegibilidade pela imagem | O esquema só tem o que é **visível**; o modelo não recebe classe, diagnóstico nem pergunta de saúde; o laudo sintético só diz o que está nos rótulos visíveis |
 | Nenhum reconhecimento facial | O modelo não é perguntado sobre pessoa; não há recorte de rosto guardado; os resultados usam só o identificador `K34-L3-nnn`, **nunca o nome** |
 | Modelo local, nada sai da máquina | Runtime local (seção 6.2); sem API externa, sem Colab (D7), sem telemetria |
-| Imagens do nível 3 fora do repositório | Só o manifesto (CSV) entra; as fotos ficam numa pasta fora do repositório, com `.gitignore` (PR 3) |
+| Imagens do nível 3 fora do repositório | Só o manifesto (CSV) entra; as fotos ficam numa pasta fora do repositório, com `.gitignore` |
 | Não usar imagem da LEXI | Nenhuma imagem, nem como modelo de desenho: o boneco é desenhado por nós, de zero |
 | Sem texto da cartilha do CPB | Os laudos sintéticos são escritos por nós, sem trecho da cartilha |
 
@@ -97,7 +95,7 @@ Nenhum texto fala em "elegível", "rejeitado" ou em classe.
 
 ### 4.1 Nível 1: o boneco desenhado por nós
 
-- **Imagem:** um boneco (tronco, cabeça, braços e pernas em segmentos) gerado **por código** a partir dos quatro níveis do perfil. Um segmento ausente **não é desenhado**; o coto termina onde o nível manda. Saída em **SVG** (texto) e **PNG** (rasterização própria em `numpy`, sem biblioteca de imagem nova, o que mantém o pacote da PR 2 sem dependência pesada).
+- **Imagem:** um boneco (tronco, cabeça, braços e pernas em segmentos) gerado **por código** a partir dos quatro níveis do perfil. Um segmento ausente **não é desenhado**; o coto termina onde o nível manda. Saída em **SVG** (texto) e **PNG** (rasterização própria em `numpy`, sem biblioteca de imagem nova, o que mantém o pacote sem dependência pesada).
 - **Variações (para o nível 1 não ser só um quadrado fácil):** pose (de pé, braços levantados, sentado), cores e espessuras, escala, rotação de poucos graus, fundo, ruído leve. A vista é **de frente**; a vista de costas fica como variação opcional, justamente para medir esquerda e direita.
 - **Rótulo verdadeiro:** os **quatro níveis exatos**; as 144 combinações possíveis (4 × 4 × 3 × 3) aparecem todas.
 - **Tamanho proposto:** 144 combinações × 3 variações de aparência = **432 imagens**.
@@ -388,4 +386,3 @@ Tudo por **leitura de página e de API pública**; **nada** foi baixado para o d
 6. **Erro (c):** o nível de um membro vai para a outra região do **mesmo lado** e o membro de origem fica `0`; o nível é cortado ao máximo da região de destino.
 7. **Chute:** o extrator constante sempre dá "confere", então a taxa do chute em erros é 0%. Por isso o quadro traz também o **chute do veredito** (56,5%), que é o piso honesto para os números por tipo.
 8. **Componentes:** em nível 1 `wheelchair` e `prosthesis` são `?` dos dois lados, então "certos" nesses atributos é trivial (432/432) e não conta.
-9. **Fora desta PR:** nível 2 (pose articulada, oclusão, cadeira e prótese desenhadas; o esquema e o comparador já aceitam `?`, `wheelchair` e `prosthesis`), extratores de modelo, CLIP e nível 3 ficam para a PR 3 e depois.

@@ -4,8 +4,6 @@
 
 **O que é.** Um profissional informa o perfil do atleta; a ferramenta devolve classes prováveis (de 33), provas elegíveis e próximos passos. Quatro peças: um **livro de regras** (critérios da cartilha do CPB de 2024 escritos como dados, conferidos contra o motor de regras em 4.519.364 perfis, sem divergência); um **MLP** que lida com ruído e campos faltantes e devolve probabilidades calibradas; uma **LLM que só explica**, com verificador que rejeita relatório que cite classe ou porcentagem não fornecida; e uma **API com interface web**.
 
-**A crítica da banca.** "O projeto é muito fácil, pode ser reduzido a uma árvore de decisão." Concordamos: o motor de regras **é** uma árvore, de propósito, porque reproduz o livreto e é auditável. O ponto fraco real é que os rótulos do modelo vêm das mesmas regras (evidência N1). A resposta foi **medir contra árvores** e procurar **onde uma árvore não chega**.
-
 **Medimos contra árvores.** Em dados sintéticos tabulares (5 sementes), a concordância com as regras fica em 79,7% (regras), 87,2% (regras com imputação), **88,7% (gradient boosting)**, **89,2% (MLP)** e 89,1% (híbrido). O MLP não supera o melhor baseline em nenhuma das 16 combinações de ruído e faltantes. Dividindo por perfil, os modelos aprendidos caem (MLP 51,9%, boosting 56,1%, regras com imputação 86,8%): memorizam o espaço finito de perfis. **Conclusão honesta: nos dados tabulares, aprendizado profundo não é necessário.**
 
 **Onde uma árvore não chega: imagem.**
