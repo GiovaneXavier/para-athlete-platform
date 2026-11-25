@@ -1,4 +1,4 @@
-"""K35: the class table, the form simulator, the labels and the split. None of these tests needs torch.
+"""image-against-form experiment: the class table, the form simulator, the labels and the split. None of these tests needs torch.
 
 Evidence level N1 (synthetic pictures, labels by construction)."""
 import itertools
@@ -11,7 +11,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "spikes"))
 
-from k35 import classes, forms, labels, splits  # noqa: E402
+from imagem_formulario import classes, forms, labels, splits  # noqa: E402
 from para_triage.consistency.schema import DOMAINS, LIMB_FIELDS, UNKNOWN, Attrs, level1_combinations  # noqa: E402
 
 
@@ -20,7 +20,7 @@ from para_triage.consistency.schema import DOMAINS, LIMB_FIELDS, UNKNOWN, Attrs,
 
 def test_the_class_table_is_the_rule_engine_on_every_decided_combination():
     pytest.importorskip("yaml")
-    from k35.make_class_table import POSTURES, engine_classes
+    from imagem_formulario.make_class_table import POSTURES, engine_classes
     from para_triage.rules import RuleEngine
 
     engine = RuleEngine()
@@ -33,7 +33,7 @@ def test_the_class_table_is_the_rule_engine_on_every_decided_combination():
 def test_the_engine_gives_an_empty_list_when_a_limb_is_not_informed():
     """Why `undecided` is kept apart from the empty set: with a `?` the engine has no data and says nothing."""
     pytest.importorskip("yaml")
-    from k35.make_class_table import POSTURES, engine_classes
+    from imagem_formulario.make_class_table import POSTURES, engine_classes
     from para_triage.rules import RuleEngine
 
     engine = RuleEngine()
@@ -144,7 +144,7 @@ def test_held_out_combinations_appear_only_in_the_test_set_and_the_sizes_are_the
                 assert sum(h for *_, h in its) == 500
 
 
-def test_the_seeds_are_disjoint_and_differ_from_k34():
+def test_the_seeds_are_disjoint_and_differ_from_imagem_laudo():
     assert len(set(splits.SEEDS.values())) == 3 and 34 not in splits.SEEDS.values()
 
 
@@ -159,7 +159,7 @@ def test_every_combination_meets_every_pose_and_every_band():
 
 def test_no_picture_is_shared_between_the_sets():
     """Renders a few pictures of each set (same combination, same index) and checks that no pixel array repeats."""
-    from k35.make_data import render_item
+    from imagem_formulario.make_data import render_item
 
     seen = splits.seen_indices()
     keys = set()
@@ -173,11 +173,11 @@ def test_no_picture_is_shared_between_the_sets():
 
 
 def test_the_spike_folder_holds_code_and_text_only():
-    out = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard", "spikes/k35"], capture_output=True, text=True, cwd=ROOT)
+    out = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard", "spikes/imagem_formulario"], capture_output=True, text=True, cwd=ROOT)
     if out.returncode != 0:
         pytest.skip("not a git checkout")
     files = [ROOT / line for line in out.stdout.splitlines() if line]
     assert files and {p.suffix for p in files} <= {".py", ".md", ".txt"}
     assert all(p.stat().st_size < 100_000 for p in files)
     src = ROOT / "src" / "para_triage"
-    assert not any("k35" in p.read_text(encoding="utf-8") for p in src.rglob("*.py")), "the package must not know the spike"
+    assert not any("imagem_formulario" in p.read_text(encoding="utf-8") for p in src.rglob("*.py")), "the package must not know the spike"

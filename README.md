@@ -9,7 +9,7 @@ Projeto final de Deep Learning (Mestrado, UNICAMP).
 1. Esta página, da "Ideia" até "Imagens sintéticas e modelo de imagem".
 2. [docs/decisoes/19_robustez_e_aprendizado_profundo.md](docs/decisoes/19_robustez_e_aprendizado_profundo.md): a crítica de que o projeto "é uma árvore de decisão" e o que decidimos medir.
 3. [docs/imagens-sinteticas-e-modelos.md](docs/imagens-sinteticas-e-modelos.md): como as imagens foram geradas, o modelo treinado (ficha técnica e pesos) e os modelos usados para avaliá-las.
-4. Os relatórios de resultados: [MLP e experimentos de robustez](docs/results_mlp.md), [K34, imagem e laudo (resultado negativo)](docs/consistencia-imagem-laudo-relatorio.md) e [K35, rede treinada contra o formulário](docs/imagem-contra-formulario-relatorio.md).
+4. Os relatórios de resultados: [MLP e experimentos de robustez](docs/results_mlp.md), [Conferência imagem e laudo (resultado negativo)](docs/consistencia-imagem-laudo-relatorio.md) e [experimento imagem contra formulário, rede treinada contra o formulário](docs/imagem-contra-formulario-relatorio.md).
 
 Todo número com imagem ou modelo é **N1** (dados sintéticos, rótulos por construção) e **não vale para pessoas nem fotos reais**. Nenhum dado de atleta foi usado.
 
@@ -22,7 +22,7 @@ Todo número com imagem ou modelo é **N1** (dados sintéticos, rótulos por con
 3. Um **modelo** (MLP em PyTorch com máscara de campos faltantes) aprende a lidar com ruído, dados faltantes e casos limítrofes, devolvendo probabilidades por classe.
 4. Uma **LLM** (Ollama) transforma o resultado num relatório com classes prováveis, provas elegíveis, equipamentos e próximos passos. A LLM só explica; um verificador rejeita relatórios que citem classes ou porcentagens que não foram fornecidas.
 
-A parte de **imagem** (K34 e K35) é um experimento à parte, só com **imagens sintéticas**: ver [Imagens sintéticas e modelo de imagem](#imagens-sintéticas-e-modelo-de-imagem-k34-e-k35).
+A parte de **imagem** é um experimento à parte, só com **imagens sintéticas**: ver [Imagens sintéticas e modelo de imagem](#imagens-sintéticas-e-modelo-de-imagem).
 
 ## Estado atual (v0)
 
@@ -41,7 +41,7 @@ A parte de **imagem** (K34 e K35) é um experimento à parte, só com **imagens 
 
 Detalhes e decisões em aberto: [docs/rules_coverage.md](docs/rules_coverage.md).
 
-## Imagens sintéticas e modelo de imagem (K34 e K35)
+## Imagens sintéticas e modelo de imagem
 
 Resposta à crítica de que o projeto "se reduz a uma árvore de decisão": medimos onde uma árvore não chega, a **imagem**. **Nenhuma foto de pessoa e nenhum dado de atleta foram usados.** As imagens são bonecos **desenhados por código nosso** (rótulo certo por construção), então todo número é **N1** e não vale para fotos reais.
 
@@ -50,10 +50,10 @@ Resposta à crítica de que o projeto "se reduz a uma árvore de decisão": medi
 | **Guia: como as imagens foram geradas, o modelo treinado e os modelos usados para avaliá-las** | [docs/imagens-sinteticas-e-modelos.md](docs/imagens-sinteticas-e-modelos.md) |
 | Geradores de imagem (nível 1 e nível 2) | `src/para_triage/consistency/` (`mannequin.py`, `level2.py`) |
 | Imagens de exemplo (14 PNG) | `docs/exemplos-imagens/` |
-| Rede treinada por nós (K35), código | `spikes/k35/` |
-| Pesos da rede (3,9 MB cada, duas sementes) | `docs/modelo-k35/` |
-| Modelos abertos testados (K34): SmolVLM2, Qwen2.5-VL, CLIP; não estão no repositório (gigabytes), com fonte e SHA-256 no relatório | `spikes/k34/` e [docs/consistencia-imagem-laudo-relatorio.md](docs/consistencia-imagem-laudo-relatorio.md) |
-| Resultados do K35 (rede contra formulário, quatro hipóteses, limites) | [docs/imagem-contra-formulario-relatorio.md](docs/imagem-contra-formulario-relatorio.md) |
+| Rede treinada por nós (experimento imagem contra formulário), código | `spikes/imagem_formulario/` |
+| Pesos da rede (3,9 MB cada, duas sementes) | `docs/modelo-imagem/` |
+| Modelos abertos testados (experimento imagem e laudo): SmolVLM2, Qwen2.5-VL, CLIP; não estão no repositório (gigabytes), com fonte e SHA-256 no relatório | `spikes/imagem_laudo/` e [docs/consistencia-imagem-laudo-relatorio.md](docs/consistencia-imagem-laudo-relatorio.md) |
+| Resultados do experimento imagem contra formulário (rede contra formulário, quatro hipóteses, limites) | [docs/imagem-contra-formulario-relatorio.md](docs/imagem-contra-formulario-relatorio.md) |
 
 ## Estrutura
 

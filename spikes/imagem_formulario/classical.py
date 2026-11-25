@@ -1,7 +1,7 @@
-"""The classical baseline (K34) read on the TEST pictures. It reads pixels only and sees no label; it is not tuned, so computing it
+"""The classical baseline (image-and-report check) read on the TEST pictures. It reads pixels only and sees no label; it is not tuned, so computing it
 does not touch the test labels. Results are cached in `paths.RUNS` (about 1 s per image, run in parallel).
 
-    PYTHONPATH=src;spikes  python -m k35.classical [--workers 8]
+    PYTHONPATH=src;spikes  python -m imagem_formulario.classical [--workers 8]
 """
 from __future__ import annotations
 

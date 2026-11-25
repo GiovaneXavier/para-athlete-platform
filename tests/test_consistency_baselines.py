@@ -1,7 +1,7 @@
-"""K34, PR 2: the classical baseline that reads the mannequin PNG, and the chance baseline (design note sections 7 and 12).
+"""image-and-report check, PR 2: the classical baseline that reads the mannequin PNG, and the chance baseline (design note sections 7 and 12).
 
 The classical reader is slow-ish (about a third of a second per image), so the default run uses a fixed subset.
-The whole level 1 set (432 images) runs with `K34_FULL=1`; its result, measured, is in the design note.
+The whole level 1 set (432 images) runs with `IMAGEM_LAUDO_COMPLETO=1`; its result, measured, is in the design note.
 """
 import os
 from collections import Counter
@@ -109,7 +109,7 @@ def test_the_oracle_pipeline_on_real_pngs_agrees_with_the_expected_verdicts(subs
     assert outcomes and all(o.correct for o in outcomes)
 
 
-@pytest.mark.skipif(not os.environ.get("K34_FULL"), reason="renders and reads all 432 images (a few minutes); set K34_FULL=1")
+@pytest.mark.skipif(not os.environ.get("IMAGEM_LAUDO_COMPLETO"), reason="renders and reads all 432 images (a few minutes); set IMAGEM_LAUDO_COMPLETO=1")
 def test_the_classical_baseline_on_the_whole_level_1_set():
     records = list(dataset.level1_records())
     assert len(records) == 432

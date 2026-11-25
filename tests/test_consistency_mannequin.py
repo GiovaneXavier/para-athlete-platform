@@ -1,4 +1,4 @@
-"""K34, PR 2: the mannequin generator, the PNG writer and the level 1 set (design note sections 4.1 and 12)."""
+"""image-and-report check, PR 2: the mannequin generator, the PNG writer and the level 1 set (design note sections 4.1 and 12)."""
 import dataclasses
 import itertools
 import math

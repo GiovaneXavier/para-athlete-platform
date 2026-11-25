@@ -13,7 +13,7 @@ Tudo é `numpy`, sem biblioteca de imagens e sem banco de imagens. O código est
 | [`schema.py`](../src/para_triage/consistency/schema.py) | O esquema fechado de atributos: pernas 0 a 3 (nenhum, pé parcial, abaixo do joelho, no joelho ou acima), braços 0 a 2 (nenhum, punho ou abaixo do cotovelo, cotovelo ou acima), cadeira e prótese (sim, não), e `?` para o que não se pode ver. |
 | [`dataset.py`](../src/para_triage/consistency/dataset.py), [`difficulty.py`](../src/para_triage/consistency/difficulty.py) | Combinações de rótulos e a medida de dificuldade por imagem. |
 
-**Para o K35** (a rede treinada), o script [`spikes/k35/make_data.py`](../spikes/k35/make_data.py) chama esses geradores com sementes novas (treino 1000, desenvolvimento 2000, teste 3000) e produz **18.000 imagens**: por nível, 6.000 de treino, 1.000 de desenvolvimento e 2.000 de teste. As 144 combinações de nível aparecem também no nível 2, e **12 combinações ficam fora do treino** para o teste de generalização (divisão em [`splits.py`](../spikes/k35/splits.py)). Cada imagem é reduzida de 400x280 para 200x140 para o treino ser rápido em CPU.
+**Para o experimento imagem contra formulário** (a rede treinada), o script [`spikes/imagem_formulario/make_data.py`](../spikes/imagem_formulario/make_data.py) chama esses geradores com sementes novas (treino 1000, desenvolvimento 2000, teste 3000) e produz **18.000 imagens**: por nível, 6.000 de treino, 1.000 de desenvolvimento e 2.000 de teste. As 144 combinações de nível aparecem também no nível 2, e **12 combinações ficam fora do treino** para o teste de generalização (divisão em [`splits.py`](../spikes/imagem_formulario/splits.py)). Cada imagem é reduzida de 400x280 para 200x140 para o treino ser rápido em CPU.
 
 ### Exemplos (geradas pelo nosso código, do conjunto de teste)
 
@@ -38,10 +38,10 @@ Cada imagem mostra **um boneco sintético**, não uma pessoa. A tabela traz o qu
 
 As imagens têm 400x280 pixels e ficam em `docs/exemplos-imagens/`.
 
-## 2. O modelo treinado com essas imagens (K35)
+## 2. O modelo treinado com essas imagens (experimento imagem contra formulário)
 
-- **O que é:** uma rede convolucional pequena, de cinco blocos (3x3, normalização em lote, ReLU, pooling), com uma camada comum e **seis cabeças**: os quatro membros (níveis e `?`), cadeira de rodas e prótese. **982.888 parâmetros**, treinada em **CPU** em 109 minutos. Código: [`spikes/k35/net.py`](../spikes/k35/net.py) (rede) e [`train.py`](../spikes/k35/train.py) (treino). Uma imagem espelhada tem esquerda e direita trocadas no rótulo (com teste unitário).
-- **Os pesos estão neste repositório:** [`docs/modelo-k35/semente0.pt`](modelo-k35/semente0.pt) e [`semente1.pt`](modelo-k35/semente1.pt) (3,9 MB cada; a semente 1 é a replicação), mais o registro de cada treino ([`semente0.json`](modelo-k35/semente0.json), [`semente1.json`](modelo-k35/semente1.json): curva de treino, tempo, memória, parâmetros). Os pesos são só de dados sintéticos.
+- **O que é:** uma rede convolucional pequena, de cinco blocos (3x3, normalização em lote, ReLU, pooling), com uma camada comum e **seis cabeças**: os quatro membros (níveis e `?`), cadeira de rodas e prótese. **982.888 parâmetros**, treinada em **CPU** em 109 minutos. Código: [`spikes/imagem_formulario/net.py`](../spikes/imagem_formulario/net.py) (rede) e [`train.py`](../spikes/imagem_formulario/train.py) (treino). Uma imagem espelhada tem esquerda e direita trocadas no rótulo (com teste unitário).
+- **Os pesos estão neste repositório:** [`docs/modelo-imagem/semente0.pt`](modelo-imagem/semente0.pt) e [`semente1.pt`](modelo-imagem/semente1.pt) (3,9 MB cada; a semente 1 é a replicação), mais o registro de cada treino ([`semente0.json`](modelo-imagem/semente0.json), [`semente1.json`](modelo-imagem/semente1.json): curva de treino, tempo, memória, parâmetros). Os pesos são só de dados sintéticos.
 
 | Arquivo | SHA-256 |
 |---|---|
@@ -65,7 +65,7 @@ As imagens têm 400x280 pixels e ficam em `docs/exemplos-imagens/`.
 | **Máquina e ambiente** | Intel Core Ultra 5 125H, 15,6 GB de RAM, sem GPU; Python 3.12, `torch` 2.15.0 (CPU), `numpy` 2.5.4 |
 | **Leitura (inferência)** | cerca de 9 ms por imagem em CPU |
 | **Saída** | probabilidades (softmax) por cabeça; a confiança da rede é bem calibrada (ECE de 0 a 0,044 no teste) |
-| **Resultado no desenvolvimento** | acerto médio dos quatro membros de 91,24% nas duas sementes (N1). Resultados no teste, com intervalos e limites: [relatório do K35](imagem-contra-formulario-relatorio.md) |
+| **Resultado no desenvolvimento** | acerto médio dos quatro membros de 91,24% nas duas sementes (N1). Resultados no teste, com intervalos e limites: [relatório do experimento imagem contra formulário](imagem-contra-formulario-relatorio.md) |
 | **Sementes** | de treino 0 e 1; de dados 1000 (treino), 2000 (desenvolvimento), 3000 (teste) |
 
 O que a rede **não** é: não lê foto real (nunca viu uma), não lê acuidade, QI nem medidas, e não decide classe. A classe sai das regras do projeto, a partir dos atributos que a rede estima, e é sempre "sujeita à classificação oficial".
@@ -74,17 +74,17 @@ O que a rede **não** é: não lê foto real (nunca viu uma), não lê acuidade,
 
 ```python
 import torch
-from k35.net import SmallNet          # com PYTHONPATH=src;spikes
+from imagem_formulario.net import SmallNet          # com PYTHONPATH=src;spikes
 model = SmallNet()
-model.load_state_dict(torch.load("docs/modelo-k35/semente0.pt", map_location="cpu", weights_only=True))
+model.load_state_dict(torch.load("docs/modelo-imagem/semente0.pt", map_location="cpu", weights_only=True))
 model.eval()
 ```
 
-- **O que foi medido, contra o quê:** a rede é comparada com a **regra clássica de pixels** (sem aprendizado, [`baselines.py`](../src/para_triage/consistency/baselines.py)) e com o **preenchimento do formulário** (completo, com campos faltando, com erros), com quatro hipóteses escritas antes de rodar e o teste aberto uma única vez. Relatório completo, com os limites: [`docs/imagem-contra-formulario-relatorio.md`](imagem-contra-formulario-relatorio.md). Decisão: [`adr/0023`](decisoes/0023-imagem-contra-formulario-k35.md).
+- **O que foi medido, contra o quê:** a rede é comparada com a **regra clássica de pixels** (sem aprendizado, [`baselines.py`](../src/para_triage/consistency/baselines.py)) e com o **preenchimento do formulário** (completo, com campos faltando, com erros), com quatro hipóteses escritas antes de rodar e o teste aberto uma única vez. Relatório completo, com os limites: [`docs/imagem-contra-formulario-relatorio.md`](imagem-contra-formulario-relatorio.md). Decisão: [`adr/0023`](decisoes/0023-imagem-contra-formulario.md).
 
-## 3. Os modelos usados para avaliar as imagens (K34)
+## 3. Os modelos usados para avaliar as imagens (experimento imagem e laudo)
 
-Antes do K35, testamos se **modelos abertos já prontos** conseguem ler esses bonecos e conferi-los com um laudo em texto. **Esses modelos não estão no repositório** (são arquivos de gigabytes, baixados dos repositórios oficiais; ficam fora de propósito). Fonte, versão e SHA-256 de cada arquivo estão na **tabela da seção "Passo A: a seção 6.4, os downloads para o aval do usuário"** do relatório [`docs/consistencia-imagem-laudo-relatorio.md`](consistencia-imagem-laudo-relatorio.md). Em resumo:
+Antes do experimento imagem contra formulário, testamos se **modelos abertos já prontos** conseguem ler esses bonecos e conferi-los com um laudo em texto. **Esses modelos não estão no repositório** (são arquivos de gigabytes, baixados dos repositórios oficiais; ficam fora de propósito). Fonte, versão e SHA-256 de cada arquivo estão na **tabela da seção "Passo A: a seção 6.4, os downloads para o aval do usuário"** do relatório [`docs/consistencia-imagem-laudo-relatorio.md`](consistencia-imagem-laudo-relatorio.md). Em resumo:
 
 | Papel | Modelo | Fonte | Licença |
 |---|---|---|---|
@@ -94,28 +94,28 @@ Antes do K35, testamos se **modelos abertos já prontos** conseguem ler esses bo
 | Linha de base zero-shot | OpenCLIP ViT-B/32 (LAION) | `huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K` | MIT |
 | Servidor local | llama.cpp, release `b12125`, CPU | `github.com/ggml-org/llama.cpp` | MIT |
 
-O código que roda tudo isso está em [`spikes/k34/`](../spikes/k34/) (`run_models.py`, `extractors.py`, `llama_client.py`, `prompts.py`, `clip_baseline.py`). **Resultado (negativo, N1):** esses modelos não leram nível nem lado do boneco, e o CLIP dá a mesma resposta na imagem espelhada. Detalhes no relatório.
+O código que roda tudo isso está em [`spikes/imagem_laudo/`](../spikes/imagem_laudo/) (`run_models.py`, `extractors.py`, `llama_client.py`, `prompts.py`, `clip_baseline.py`). **Resultado (negativo, N1):** esses modelos não leram nível nem lado do boneco, e o CLIP dá a mesma resposta na imagem espelhada. Detalhes no relatório.
 
 ## 4. O que não está no repositório, e por quê
 
 | O quê | Onde fica | Por quê |
 |---|---|---|
 | As 18.000 imagens de treino, desenvolvimento e teste (cerca de 2,3 GB) | Fora do repositório | Tamanho; **regeneráveis** com o código e as sementes (cerca de 19 minutos) |
-| Os modelos abertos do K34 (SmolVLM2, Qwen, CLIP, llama.cpp) | Fora do repositório | Tamanho (gigabytes) e licença de cada um; baixados item a item |
-| Fotos reais | **Não existem** | O nível 3 do K34 (30 fotos Creative Commons) ficou como próximo passo |
+| Os modelos abertos do experimento imagem e laudo (SmolVLM2, Qwen, CLIP, llama.cpp) | Fora do repositório | Tamanho (gigabytes) e licença de cada um; baixados item a item |
+| Fotos reais | **Não existem** | O nível 3 do experimento imagem e laudo (30 fotos Creative Commons) ficou como próximo passo |
 
 ## 5. Como reproduzir
 
 Com o ambiente que tem `torch` e `numpy` (o código não depende de `pyyaml` neste trecho) e `PYTHONPATH=src;spikes`:
 
 ```bash
-python -m k35.make_data --workers 8      # gera as 18.000 imagens (cerca de 19 min), fora do repositório
-python -m k35.train --epochs 20          # treina a rede em CPU (cerca de 109 min)
-python -m k35.dev --name run1            # medidas no desenvolvimento (nunca no teste)
-python -m k35.final --name run1          # a rodada única no teste; recusa uma segunda
-python -m k35.replicate --first run1 --second run2   # replicação com a semente 1
+python -m imagem_formulario.make_data --workers 8      # gera as 18.000 imagens (cerca de 19 min), fora do repositório
+python -m imagem_formulario.train --epochs 20          # treina a rede em CPU (cerca de 109 min)
+python -m imagem_formulario.dev --name run1            # medidas no desenvolvimento (nunca no teste)
+python -m imagem_formulario.final --name run1          # a rodada única no teste; recusa uma segunda
+python -m imagem_formulario.replicate --first run1 --second run2   # replicação com a semente 1
 ```
 
 ## 6. Ordem de leitura sugerida
 
-1. Esta página. 2. [`docs/decisoes/19_robustez_e_aprendizado_profundo.md`](decisoes/19_robustez_e_aprendizado_profundo.md): a crítica da banca e o que decidimos fazer. 3. [`docs/consistencia-imagem-laudo-relatorio.md`](consistencia-imagem-laudo-relatorio.md): o K34, negativo. 4. [`docs/imagem-contra-formulario-relatorio.md`](imagem-contra-formulario-relatorio.md): o K35, com as quatro hipóteses e os limites.
+1. Esta página. 2. [`docs/decisoes/19_robustez_e_aprendizado_profundo.md`](decisoes/19_robustez_e_aprendizado_profundo.md): a crítica da banca e o que decidimos fazer. 3. [`docs/consistencia-imagem-laudo-relatorio.md`](consistencia-imagem-laudo-relatorio.md): o experimento imagem e laudo, negativo. 4. [`docs/imagem-contra-formulario-relatorio.md`](imagem-contra-formulario-relatorio.md): o experimento imagem contra formulário, com as quatro hipóteses e os limites.

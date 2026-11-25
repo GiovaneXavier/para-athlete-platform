@@ -8,8 +8,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "spikes"))
 
-from k35 import analysis as an  # noqa: E402
-from k35 import labels  # noqa: E402
+from imagem_formulario import analysis as an  # noqa: E402
+from imagem_formulario import labels  # noqa: E402
 from para_triage.consistency.schema import UNKNOWN, Attrs  # noqa: E402
 
 # Three pictures at level 2: the first shows every limb, the second hides lower_left, the third shows every limb.
@@ -45,7 +45,7 @@ def test_the_gap_between_seeds_is_second_minus_first_in_points():
 
 
 def test_the_replication_script_is_separate_and_final_still_refuses_a_second_run():
-    spikes = Path(__file__).resolve().parents[1] / "spikes" / "k35"
+    spikes = Path(__file__).resolve().parents[1] / "spikes" / "imagem_formulario"
     final, rep = (spikes / "final.py").read_text(encoding="utf-8"), (spikes / "replicate.py").read_text(encoding="utf-8")
     assert "Refusing to run again" in final                    # the guard of the single test run is still there
     assert "FINAL_MARKER" not in rep                           # the replication does not touch it
@@ -55,7 +55,7 @@ def test_the_replication_script_is_separate_and_final_still_refuses_a_second_run
 
 def test_the_same_training_seed_gives_the_same_network_and_another_seed_a_different_one():
     torch = pytest.importorskip("torch")
-    from k35.net import SmallNet
+    from imagem_formulario.net import SmallNet
 
     def first_weights(seed):
         torch.manual_seed(seed)

@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-ROOT = Path(os.environ.get("K34_MODELS", str(Path.home() / "k34-models")))
+ROOT = Path(os.environ.get("IMAGEM_LAUDO_MODELOS", str(Path.home() / "imagem-laudo-modelos")))
 LLAMA_SERVER = ROOT / "llama" / "bin" / "llama-server.exe"
 RESULTS = ROOT / "results"
 

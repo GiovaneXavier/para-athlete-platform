@@ -1,4 +1,4 @@
-"""Level 2 of K34: OUR synthetic images, with variation of appearance, pose, occlusion, lighting, geometry,
+"""Level 2 of image-and-report check: OUR synthetic images, with variation of appearance, pose, occlusion, lighting, geometry,
 background, noise and equipment (design note section 4.2).
 
 * 300 images in four difficulty bands of 75 (band 0 is the control, close to level 1; bands 1 to 3 are light,

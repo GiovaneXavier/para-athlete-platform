@@ -1,4 +1,4 @@
-"""Level 1 of K34: a mannequin drawn by code from the four limb levels (design note section 4.1).
+"""Level 1 of image-and-report check: a mannequin drawn by code from the four limb levels (design note section 4.1).
 
 The figure is made of discs and flat-ended bars. A segment that the level says is absent is
 NOT drawn: the stump ends where the level says. Nothing here comes from any photograph or from

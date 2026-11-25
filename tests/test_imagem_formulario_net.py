@@ -1,4 +1,4 @@
-"""K35: the network and the mirror augmentation. Every test here needs torch and is skipped when torch is not installed."""
+"""image-against-form experiment: the network and the mirror augmentation. Every test here needs torch and is skipped when torch is not installed."""
 import sys
 from pathlib import Path
 
@@ -10,7 +10,7 @@ torch = pytest.importorskip("torch")
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "spikes"))
 
-from k35 import labels, net  # noqa: E402
+from imagem_formulario import labels, net  # noqa: E402
 
 
 def test_mirroring_flips_the_picture_and_swaps_left_and_right_in_the_label():

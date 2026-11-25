@@ -1,4 +1,4 @@
-"""The closed attribute schema of the image and report consistency check (K34, design note section 2).
+"""The closed attribute schema of the image and report consistency check (image-and-report check, design note section 2).
 
 Nothing here imports the rule engine: the level domains are written out and a test checks that
 they equal `LowerLimbLevel` and `UpperLimbLevel`.

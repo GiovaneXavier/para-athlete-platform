@@ -1,6 +1,6 @@
 """Generates the image sets with the existing generators and writes them OUTSIDE the repository (`paths.DATA`).
 
-    PYTHONPATH=src;spikes  python -m k35.make_data [--workers 8] [--only level split]
+    PYTHONPATH=src;spikes  python -m imagem_formulario.make_data [--workers 8] [--only level split]
 
 Each image is reduced 2x2 by averaging (400x280 -> 200x140, uint8) to keep CPU training fast. The test set also keeps the original
 PNG bytes (the classical baseline reads those). Nothing is written to the repository.

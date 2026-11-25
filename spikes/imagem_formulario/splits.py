@@ -1,9 +1,9 @@
-"""The split of the K35 data, fixed BEFORE any result is seen. Pure Python.
+"""The split of the image-against-form experiment data, fixed BEFORE any result is seen. Pure Python.
 
 - 12 of the 144 level combinations are HELD OUT: never in the training set or the development set; they appear only in the test
   set (500 images per level), where they are measured apart from the 1,500 images of the 132 combinations the network has seen.
-- The three sets use disjoint random seeds (train 1000, dev 2000, test 3000; K34 used 34), so no image, appearance or
-  noise draw is shared. `tests/test_k35_splits.py` checks that no seed, no held-out combination and no image byte is shared.
+- The three sets use disjoint random seeds (train 1000, dev 2000, test 3000; image-and-report check used 34), so no image, appearance or
+  noise draw is shared. `tests/test_imagem_formulario_splits.py` checks that no seed, no held-out combination and no image byte is shared.
 - What the network sees in training holds every value of every limb (a held-out combination is a new COMBINATION of known
   values), so the held-out measurement tests whether the heads confuse the limbs with each other (shortcuts by correlation), not
   whether the network generalises to a level it never saw. The report says so.

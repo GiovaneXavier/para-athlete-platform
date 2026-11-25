@@ -1,4 +1,4 @@
-# K34: conferência entre uma imagem e um laudo (nota de desenho)
+# Experimento imagem e laudo: conferência entre uma imagem e um laudo (nota de desenho)
 
 **Estado:** PR 1 de 3, de 05/11/2026, **atualizada no mesmo dia depois das respostas do usuário** (seção 11.1). **Só desenho: não há código, não há imagem e não há modelo baixado.** Decisões que sustentam isto: `docs/decisoes/0022-conferencia-boneco-laudo.md`. Contexto da ideia: `docs/decisoes/19_robustez_e_aprendizado_profundo.md`.
 
@@ -19,7 +19,7 @@
 
 ## 1. Objetivo e limites
 
-A crítica recebida foi que o projeto "se reduz a uma árvore de decisão". O motor de regras **é** uma árvore, de propósito (é o que o torna auditável). A resposta do K34 é a arquitetura **percepção aprendida mais regras simbólicas**: um modelo aprende a **ler** (imagem e texto), e o **código decide**, de modo que se possa **medir** onde o aprendizado ajuda e onde não ajuda.
+A crítica recebida foi que o projeto "se reduz a uma árvore de decisão". O motor de regras **é** uma árvore, de propósito (é o que o torna auditável). A resposta do experimento imagem e laudo é a arquitetura **percepção aprendida mais regras simbólicas**: um modelo aprende a **ler** (imagem e texto), e o **código decide**, de modo que se possa **medir** onde o aprendizado ajuda e onde não ajuda.
 
 **Limites que valem em tudo:**
 
@@ -35,9 +35,9 @@ A crítica recebida foi que o projeto "se reduz a uma árvore de decisão". O mo
 
 ## 2. O esquema fechado de atributos
 
-Os valores de nível são **os do perfil** (`src/para_triage/rules/schema.py`), para que o K34 possa, no futuro, alimentar o mesmo formulário sem tradução.
+Os valores de nível são **os do perfil** (`src/para_triage/rules/schema.py`), para que o experimento imagem e laudo possa, no futuro, alimentar o mesmo formulário sem tradução.
 
-| Atributo | Valores permitidos | Níveis do K34 |
+| Atributo | Valores permitidos | Níveis do experimento imagem e laudo |
 |---|---|---|
 | `lower_left`, `lower_right` (membro inferior, lado **da pessoa**) | `0` nenhum · `1` parte do pé · `2` abaixo do joelho · `3` na altura do joelho ou acima · `?` não sei | 1, 2, 3 |
 | `upper_left`, `upper_right` (membro superior, lado **da pessoa**) | `0` nenhum · `1` no punho ou abaixo do cotovelo · `2` no cotovelo ou acima · `?` não sei | 1, 2, 3 |
@@ -176,13 +176,13 @@ Nenhum texto fala em "elegível", "rejeitado" ou em classe.
 
 **Limitações do manifesto, ditas com franqueza:**
 
-- **Rótulos por lado e por nível não existem.** A partir de miniaturas só se vê o grosso. Os rótulos que o K34 usa (os quatro níveis, `?` incluído) exigem **olhar cada foto em tamanho original**; é o **primeiro passo da PR 3**, e proponho que **você veja as fotos antes** (as 30 páginas estão no CSV) e **retire as que não quiser**.
+- **Rótulos por lado e por nível não existem.** A partir de miniaturas só se vê o grosso. Os rótulos que o experimento imagem e laudo usa (os quatro níveis, `?` incluído) exigem **olhar cada foto em tamanho original**; é o **primeiro passo da PR 3**, e proponho que **você veja as fotos antes** (as 30 páginas estão no CSV) e **retire as que não quiser**.
 - **Ainda não há uma foto clara de um só atleta com diferença de membro superior confirmada.** Procurei em 19 categorias de atletas amputados e em buscas por texto. As **7 fotos com `upper_limbs: to_confirm`** são de provas de classes de braço ou de atletas que podem ter diferença de braço; **só a revisão em tamanho original diz se o braço aparece diferente**. **Se não aparecer em nenhuma, o nível 3 não testa o membro superior**, e o relatório **diz isso** (o nível 2, nosso, testa).
 - **Pouca variedade, ainda:** 11 fotógrafos, mas **quase tudo é atletismo de elite**, adultos, de **2007 a 2022**, com 11 das 30 de **2013** (o Mundial e a Maratona de Londres, de **três** fotógrafos). Não representa treino, formulário de peneira, nem foto de celular.
 - **Idade e evento:** todos os arquivos são de eventos de elite e, na aparência, de adultos; **a idade não foi conferida arquivo a arquivo**. Dois têm a data ou o evento a confirmar (`K34-L3-018`, de 2007, numa prova em Manchester; e `K34-L3-010`, cuja data nos dados do arquivo, 2008, não bate com o título, 2011). Eu os retiro se você preferir. **Havia crianças ao fundo em duas fotos candidatas; foram tiradas.**
 - **Revisão de licença do Commons:** arquivos importados do Flickr (os da Agência Brasil e de Peter Wayne, em CC BY 2.0) dependem de a licença no Flickr ter sido a declarada; conferi o que o Commons declara, **não** a página original.
 
-**Privacidade, nomes e atribuição (valem para tudo que sair do K34):**
+**Privacidade, nomes e atribuição (valem para tudo que sair do experimento imagem e laudo):**
 
 - **O endereço de cada arquivo no Commons contém o nome do atleta** (o título do arquivo costuma citá-lo). **O manifesto fica só no repositório privado**; **o relatório, os resultados e os slides usam apenas os identificadores `K34-L3-nnn`** e **não repetem nomes**. O manifesto **não pode virar público** sem tirar os endereços.
 - **Atribuição:** CC BY e CC BY-SA exigem **creditar autor e licença onde a imagem for exibida**, e a **CC BY-SA exige compartilhar igual as adaptações**: **qualquer imagem derivada (recorte, filtro, mosaico) que for mostrada ou distribuída precisa levar a mesma licença e a atribuição**. O manifesto tem os campos de autor, licença e endereço da licença. **Não há distribuição das fotos** neste projeto, e **o que for mostrado em slide é decisão sua**, com a atribuição.
@@ -213,7 +213,7 @@ Verificado hoje: **Intel Core Ultra 5 125H** (14 núcleos, 18 threads), **15,6 G
 
 ### 6.2 Runtime proposto
 
-**llama.cpp** (licença MIT; há binário pronto para Windows em CPU, cerca de 25 MB) servindo modelos **GGUF**, chamado por **HTTP local**. Vantagens: **saída restrita ao esquema** (gramática ou JSON schema), quantização que **cabe** na RAM e CPU mais rápida do que `transformers` em CPU, e o código do K34 **não importa `torch`** para isto. Alternativa, mais lenta e mais pesada: `transformers` com PyTorch em CPU. As versões do binário e dos modelos entram **fixadas por hash** no relatório.
+**llama.cpp** (licença MIT; há binário pronto para Windows em CPU, cerca de 25 MB) servindo modelos **GGUF**, chamado por **HTTP local**. Vantagens: **saída restrita ao esquema** (gramática ou JSON schema), quantização que **cabe** na RAM e CPU mais rápida do que `transformers` em CPU, e o código do experimento imagem e laudo **não importa `torch`** para isto. Alternativa, mais lenta e mais pesada: `transformers` com PyTorch em CPU. As versões do binário e dos modelos entram **fixadas por hash** no relatório.
 
 ### 6.3 Candidatos (licença e tamanho conferidos nas páginas dos modelos, em 05/11/2026)
 
@@ -225,7 +225,7 @@ Verificado hoje: **Intel Core Ultra 5 125H** (14 núcleos, 18 threads), **15,6 G
 | Imagem, **forte** | **Qwen2.5-VL-7B-Instruct** (`ggml-org/Qwen2.5-VL-7B-Instruct-GGUF`, Q4_K_M + `mmproj` Q8) | **Apache-2.0** | 4,68 GB + 0,85 GB | cerca de 7 GB | **30 a 70 s** (típico 40) | o mais capaz do grupo; roda só em **subconjuntos** do nível 1 |
 | Imagem, **opcional** | Qwen2.5-VL-3B-Instruct (`ggml-org/...-3B-...-GGUF`, Q4_K_M) | **Qwen Research License** (uso de pesquisa; o repositório GGUF se declara Apache-2.0, o que **não bate** com a licença do modelo de origem) | 1,93 GB + 0,84 GB | cerca de 4 GB | 15 a 30 s | **Fora por padrão**: licença menos aberta e inconsistente nas duas páginas |
 | Texto (laudo) | **Qwen2.5-1.5B-Instruct** (`Qwen/Qwen2.5-1.5B-Instruct-GGUF`, Q4_K_M) | **Apache-2.0** | 1,12 GB | cerca de 2 GB | 2 a 8 s por laudo | modelo de texto pequeno |
-| Linha de base | **OpenCLIP LAION ViT-B/32** (`laion/CLIP-ViT-B-32-laion2B-s34B-b79K`) | **MIT** (código e pesos) | 0,61 GB | menos de 1 GB | 0,15 a 0,4 s | `torch` em CPU; só em `spikes/k34/` |
+| Linha de base | **OpenCLIP LAION ViT-B/32** (`laion/CLIP-ViT-B-32-laion2B-s34B-b79K`) | **MIT** (código e pesos) | 0,61 GB | menos de 1 GB | 0,15 a 0,4 s | `torch` em CPU; só em `spikes/imagem_laudo/` |
 
 **Excluídos, com o motivo:** **Gemma 3 e PaliGemma** (licença Gemma, com acesso condicionado por aceite manual); **Phi-3.5-vision, Moondream2, InternVL3 e Florence-2** (licenças MIT ou Apache-2.0, mas as páginas deles estão marcadas `custom_code`: em `transformers` exigem `trust_remote_code`, ou seja, **executar código que vem do repositório do modelo**, o que não quero fazer sem ler esse código; o Florence-2 também não segue instrução em JSON, e não achei GGUF do Phi-3.5-vision). **SmolVLM2 e Qwen2.5-VL não têm esse marcador** (conferido na API de modelos hoje).
 
@@ -344,9 +344,9 @@ Todos **determinísticos**, **sem `torch` e sem `transformers`**, com **extrator
 
 | PR | Ramo | Conteúdo | Quando (meta, não compromisso) |
 |---|---|---|---|
-| **1** | `feature/k34-design` | Esta nota e o manifesto candidato. **Sem código** | cerca de 11/11 |
-| **2** | `feature/k34-core` | `src/para_triage/consistency/` (esquema, gerador do boneco, geradores de laudo e de erros, comparador, métricas, baseline clássica) e os testes com extratores falsos. **Sem modelo, sem `pyproject.toml`, sem CI** | cerca de 15/11 |
-| **3** | `feature/k34-models` | `spikes/k34/` (`requirements.txt` próprio, **ambiente virtual novo fora do repositório e fora de `<ambiente do projeto>`**, que **não será alterado**), extratores, CLIP, os três níveis, os resultados e o relatório. **Os downloads só depois do seu aval** | cerca de 23/11, para a entrega de 26/11 |
+| **1** | ramo interno | Esta nota e o manifesto candidato. **Sem código** | cerca de 11/11 |
+| **2** | ramo interno | `src/para_triage/consistency/` (esquema, gerador do boneco, geradores de laudo e de erros, comparador, métricas, baseline clássica) e os testes com extratores falsos. **Sem modelo, sem `pyproject.toml`, sem CI** | cerca de 15/11 |
+| **3** | ramo interno | `spikes/imagem_laudo/` (`requirements.txt` próprio, **ambiente virtual novo fora do repositório e fora de `<ambiente do projeto>`**, que **não será alterado**), extratores, CLIP, os três níveis, os resultados e o relatório. **Os downloads só depois do seu aval** | cerca de 23/11, para a entrega de 26/11 |
 
 Cada PR **espera a revisão** antes da seguinte. Se o nível 3 atrasar, entregam-se os níveis 1 e 2 e **diz-se**.
 
@@ -360,11 +360,11 @@ Tudo por **leitura de página e de API pública**; **nada** foi baixado para o d
 - **Máquina:** consulta do sistema (processador, memória, vídeo, disco, Python).
 - **Tempos por imagem:** **estimativas por cálculo**, não medições (seção 6.3).
 
-## 15. Estado da implementação (PR 2, `feature/k34-core`)
+## 15. Estado da implementação (PR 2, ramo interno)
 
 **Evidência: N1.** Lógica pura e nível 1. **Sem modelo, sem `torch`, sem `transformers`, sem download, sem biblioteca nova** (o PNG é escrito e lido com `zlib` e `struct`; o desenho é rasterizado com `numpy`). `pyproject.toml`, CI, API, web e as outras pastas não foram tocados.
 
-**O que existe** (`src/para_triage/consistency/`): `schema` (esquema fechado), `compare` (comparador e os três textos), `mannequin` (boneco em SVG e PNG), `dataset` (as 432 imagens do nível 1), `reports` (laudos em português e leitor por regras), `errors` (os sete pares por imagem), `pipeline` (extrator de imagem, extrator de laudo, comparador; diz **onde** está o erro), `fakes` (extratores falsos), `metrics` (Wilson, bootstrap por imagem, quadros), `baselines` (clássica e chute). `python -m para_triage.consistency level1 [--every N]` reproduz as tabelas abaixo (cerca de 3 min para as 432 imagens). Testes: `tests/test_consistency_*.py`; `K34_FULL=1` roda a linha de base clássica nas 432.
+**O que existe** (`src/para_triage/consistency/`): `schema` (esquema fechado), `compare` (comparador e os três textos), `mannequin` (boneco em SVG e PNG), `dataset` (as 432 imagens do nível 1), `reports` (laudos em português e leitor por regras), `errors` (os sete pares por imagem), `pipeline` (extrator de imagem, extrator de laudo, comparador; diz **onde** está o erro), `fakes` (extratores falsos), `metrics` (Wilson, bootstrap por imagem, quadros), `baselines` (clássica e chute). `python -m para_triage.consistency level1 [--every N]` reproduz as tabelas abaixo (cerca de 3 min para as 432 imagens). Testes: `tests/test_consistency_*.py`; `IMAGEM_LAUDO_COMPLETO=1` roda a linha de base clássica nas 432.
 
 **Resultado medido no nível 1 (432 imagens, semente 34, N1):**
 

@@ -1,6 +1,6 @@
 """A tiny PNG writer and reader for 8-bit RGB images, with `zlib` and `struct` only.
 
-It exists so the K34 package needs no image library (design note section 4.1). The reader only
+It exists so the image-and-report check package needs no image library (design note section 4.1). The reader only
 understands what the writer produces (non-interlaced, filter 0): it is not a general decoder.
 """
 from __future__ import annotations

@@ -1,6 +1,6 @@
 """Trains the small network on CPU, watching the DEVELOPMENT set only. The test set is never opened here.
 
-    PYTHONPATH=src;spikes  python -m k35.train [--epochs 30] [--threads 10] [--budget-min 100] [--name run1]
+    PYTHONPATH=src;spikes  python -m imagem_formulario.train [--epochs 30] [--threads 10] [--budget-min 100] [--name run1]
 
 Writes the weights, a JSON log and the development predictions to `paths.RUNS` (outside the repository).
 What is tuned here, and on which set, is recorded in the report: the number of epochs (early stop on the development mean accuracy of the

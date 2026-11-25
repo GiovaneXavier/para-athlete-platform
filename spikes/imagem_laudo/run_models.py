@@ -1,7 +1,7 @@
-"""K34 PR 3 step B runner. Run from the repository root with the NEW environment (never the project's own):
+"""image-and-report check PR 3 step B runner. Run from the repository root with the NEW environment (never the project's own):
 
-    set PYTHONPATH=src;spikes/k34
-    <venv-k34>\\Scripts\\python.exe spikes/k34/run_models.py image --model smol --level 1 --subset eval --mirror
+    set PYTHONPATH=src;spikes/imagem_laudo
+    <venv-imagem-laudo>\\Scripts\\python.exe spikes/imagem_laudo/run_models.py image --model smol --level 1 --subset eval --mirror
     ... report --level 1 --subset eval
     ... pipeline --model smol --level 1 --subset eval
     ... (clip_baseline.py is separate)

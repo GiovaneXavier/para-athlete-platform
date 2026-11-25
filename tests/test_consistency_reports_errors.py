@@ -1,4 +1,4 @@
-"""K34, PR 2: synthetic reports, the rule-based reader and the planted errors (design note sections 5 and 12)."""
+"""image-and-report check, PR 2: synthetic reports, the rule-based reader and the planted errors (design note sections 5 and 12)."""
 import itertools
 import random
 from collections import Counter

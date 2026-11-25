@@ -1,4 +1,4 @@
-"""K34, PR 2: the closed schema, the comparator and the three output texts (design note sections 2, 3.2, 3.3, 12)."""
+"""image-and-report check, PR 2: the closed schema, the comparator and the three output texts (design note sections 2, 3.2, 3.3, 12)."""
 import itertools
 import random
 

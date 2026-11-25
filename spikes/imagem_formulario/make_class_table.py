@@ -1,10 +1,10 @@
 """Writes `class_table.py`: for every decided combination (4 limb levels and a posture), the classes the rule engine says are
-MET and the ones it says are BORDERLINE. Needs `pyyaml` (the rule engine loads a YAML catalog), which the `k34-models`
+MET and the ones it says are BORDERLINE. Needs `pyyaml` (the rule engine loads a YAML catalog), which the `imagem-laudo-modelos`
 environment does not have, so this is run ONCE in the project environment (read only; nothing is installed or changed):
 
-    PYTHONPATH=src;spikes  <para-triage python> -m k35.make_class_table
+    PYTHONPATH=src;spikes  <para-triage python> -m imagem_formulario.make_class_table
 
-A test (tests/test_k35_classes.py) compares the table with the engine on every combination.
+A test (tests/test_imagem_formulario_classes.py) compares the table with the engine on every combination.
 """
 from __future__ import annotations
 

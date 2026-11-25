@@ -1,4 +1,4 @@
-"""K34, PR 2: the package is isolated (design note section 12, "guarda de isolamento").
+"""image-and-report check, PR 2: the package is isolated (design note section 12, "guarda de isolamento").
 
 * it imports no `torch`, no `transformers` and nothing that reaches the network, and no other module of `para_triage`;
 * nothing else in `para_triage` imports it (the API, the rule engine and the rule book do not know it exists);
@@ -94,7 +94,7 @@ def test_no_route_of_the_api_comes_from_the_consistency_check():
     from para_triage.api.app import create_app
 
     paths = create_app().openapi()["paths"]
-    assert not any("consistency" in p or "k34" in p.lower() or "conferencia" in p for p in paths)
+    assert not any("consistency" in p or "imagem_laudo" in p.lower() or "conferencia" in p for p in paths)
 
 
 def tracked_files():
@@ -107,15 +107,15 @@ def tracked_files():
 
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".svg", ".ico", ".heic"}
 WEIGHT_SUFFIXES = {".gguf", ".safetensors", ".pt", ".pth", ".bin", ".onnx", ".ckpt", ".h5", ".npz", ".npy"}
-# Images that were already in the repository before K34 and have nothing to do with it (a favicon, figures of a paper template).
+# Images that were already in the repository before image-and-report check and have nothing to do with it (a favicon, figures of a paper template).
 KNOWN_IMAGES = {"web/src/app/favicon.ico"}
 
 
 # Published on purpose (24/11/2026, so that anyone reading the repository can see the images and the model): a few of OUR synthetic
-# images (drawn by our own code, no person in them) and the two weight files of the K35 network (3.9 MB each, trained on synthetic
+# images (drawn by our own code, no person in them) and the two weight files of the image-against-form experiment network (3.9 MB each, trained on synthetic
 # data only). Anything else, and above all a real photo or an image from LEXI, is still refused.
 SYNTHETIC_EXAMPLES_DIR = "docs/exemplos-imagens/"
-K35_WEIGHTS_DIR = "docs/modelo-k35/"
+PESOS_IMAGEM_DIR = "docs/modelo-imagem/"
 MAX_EXAMPLES = 20
 MAX_WEIGHT_BYTES = 5_000_000
 
@@ -125,31 +125,31 @@ def test_no_new_image_and_no_model_weight_is_in_the_repository():
     rel = {p: p.relative_to(ROOT).as_posix() for p in files}
     examples = {r for r in rel.values() if r.startswith(SYNTHETIC_EXAMPLES_DIR)}
     images = {r for p, r in rel.items() if p.suffix.lower() in IMAGE_SUFFIXES} - examples
-    weights = [r for p, r in rel.items() if p.suffix.lower() in WEIGHT_SUFFIXES and not r.startswith(K35_WEIGHTS_DIR)]
+    weights = [r for p, r in rel.items() if p.suffix.lower() in WEIGHT_SUFFIXES and not r.startswith(PESOS_IMAGEM_DIR)]
     assert images <= KNOWN_IMAGES, sorted(images - KNOWN_IMAGES)
     assert not weights, weights
-    # the exceptions are narrow: PNG only, a handful of files, small weights, state dicts of the K35 network
+    # the exceptions are narrow: PNG only, a handful of files, small weights, state dicts of the image-against-form experiment network
     assert len(examples) <= MAX_EXAMPLES and all(r.endswith(".png") for r in examples), sorted(examples)
-    k35 = [p for p, r in rel.items() if r.startswith(K35_WEIGHTS_DIR) and p.suffix.lower() in WEIGHT_SUFFIXES]
-    assert all(p.suffix.lower() == ".pt" and p.stat().st_size < MAX_WEIGHT_BYTES for p in k35), [p.name for p in k35]
+    imagem_formulario = [p for p, r in rel.items() if r.startswith(PESOS_IMAGEM_DIR) and p.suffix.lower() in WEIGHT_SUFFIXES]
+    assert all(p.suffix.lower() == ".pt" and p.stat().st_size < MAX_WEIGHT_BYTES for p in imagem_formulario), [p.name for p in imagem_formulario]
 
 
-def test_the_k34_files_hold_code_text_and_the_manifest_only():
+def test_the_image_files_hold_code_text_and_the_manifest_only():
     allowed_suffixes = {".py", ".md", ".csv"}
     mine = [p for p in tracked_files() if p.exists() and (CONSISTENCY in p.parents or "consistencia" in p.name or p.name.startswith("test_consistency"))]
-    assert mine, "the K34 files should be found"
+    assert mine, "the image-and-report check files should be found"
     assert {p.suffix for p in mine} <= allowed_suffixes, sorted({p.suffix for p in mine} - allowed_suffixes)
     manifest = ROOT / "docs" / "consistencia-imagem-laudo-manifesto-nivel3.csv"
     assert manifest in mine
     header = manifest.read_text(encoding="utf-8").splitlines()[0]
     assert "commons_page_url" in header and "label_status" in header
-    # PR 3 step B: the model extractors live in spikes/k34 as code and text only; weights, binaries, images and results stay outside the repo
-    spike = [p for p in tracked_files() if p.exists() and (ROOT / "spikes" / "k34") in p.parents]
+    # PR 3 step B: the model extractors live in spikes/imagem_laudo as code and text only; weights, binaries, images and results stay outside the repo
+    spike = [p for p in tracked_files() if p.exists() and (ROOT / "spikes" / "imagem_laudo") in p.parents]
     assert {p.suffix for p in spike} <= {".py", ".md", ".txt"}, sorted({p.suffix for p in spike})
     assert all(p.stat().st_size < 100_000 for p in spike), "nothing big belongs in the spike folder"
 
 
-def test_the_dependencies_are_the_same_as_before_k34():
+def test_the_dependencies_are_the_same_as_before_imagem_laudo():
     data = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert data["project"]["dependencies"] == ["numpy", "pandas", "pyyaml", "scikit-learn", "torch"]
     assert data["project"]["optional-dependencies"]["api"] == ["fastapi", "uvicorn[standard]"]

@@ -1,4 +1,4 @@
-"""K34, PR 3 step A: level 2 (our synthetic images with variation) and the measurement of its difficulty
+"""image-and-report check, PR 3 step A: level 2 (our synthetic images with variation) and the measurement of its difficulty
 (design note section 4.2)."""
 import functools
 from collections import Counter

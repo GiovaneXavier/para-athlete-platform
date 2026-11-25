@@ -1,4 +1,4 @@
-"""K35: the arithmetic of the comparison on a small table that can be checked by hand (no torch)."""
+"""image-against-form experiment: the arithmetic of the comparison on a small table that can be checked by hand (no torch)."""
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -8,8 +8,8 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "spikes"))
 
-from k35 import analysis as an  # noqa: E402
-from k35 import labels  # noqa: E402
+from imagem_formulario import analysis as an  # noqa: E402
+from imagem_formulario import labels  # noqa: E402
 from para_triage.consistency.schema import UNKNOWN, Attrs  # noqa: E402
 
 # Four pictures at level 2. The true attributes and what the picture shows (`?` where hidden):

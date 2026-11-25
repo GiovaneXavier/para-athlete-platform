@@ -1,7 +1,7 @@
 """THE one run on the test set. It writes the tables of the report and refuses to run twice.
 
-    PYTHONPATH=src;spikes  python -m k35.final --name run1
-    PYTHONPATH=src;spikes  python -m k35.final --name run1 --bugfix "what the code bug was"   (only for a bug in the CODE, never to retune)
+    PYTHONPATH=src;spikes  python -m imagem_formulario.final --name run1
+    PYTHONPATH=src;spikes  python -m imagem_formulario.final --name run1 --bugfix "what the code bug was"   (only for a bug in the CODE, never to retune)
 
 A marker file outside the repository records every run. A second run is allowed only with `--bugfix` and a reason; both runs are
 kept and both must be reported with what changed. Nothing is ever retuned after seeing the test: the threshold of the fusion and

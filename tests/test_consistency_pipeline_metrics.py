@@ -1,4 +1,4 @@
-"""K34, PR 2: the pipeline with fake extractors and the metrics (design note sections 8 and 12)."""
+"""image-and-report check, PR 2: the pipeline with fake extractors and the metrics (design note sections 8 and 12)."""
 import types
 
 import pytest

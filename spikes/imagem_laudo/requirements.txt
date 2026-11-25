@@ -1,0 +1,9 @@
+# image-and-report check spike only. Install in a NEW virtual environment OUTSIDE the repo (never in the project's own environment):
+#   py -3.12 -m venv <venv-imagem-laudo>
+#   <venv-imagem-laudo>\Scripts\python.exe -m pip install -r spikes/imagem_laudo/requirements.txt
+# Run with PYTHONPATH=src so that `para_triage.consistency` (stdlib + numpy only) is importable.
+torch==2.15.0
+open_clip_torch==3.3.0
+pillow==13.0.0
+numpy==2.5.4
+httpx==0.28.1

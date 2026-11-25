@@ -1,4 +1,4 @@
-"""Baselines of K34 that need no learned model (design note section 7): (a) the classical reader
+"""Baselines of image-and-report check that need no learned model (design note section 7): (a) the classical reader
 of the mannequin PNG and (c) the chance baseline. The CLIP baseline (b) belongs to PR 3.
 
 The classical reader uses the KNOWLEDGE OF THE GEOMETRY, as the note says: it knows where the

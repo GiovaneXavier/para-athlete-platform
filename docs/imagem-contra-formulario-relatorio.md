@@ -1,20 +1,20 @@
-# K35: uma rede treinada em imagens sintéticas, contra o formulário (relatório)
+# Experimento imagem contra formulário: uma rede treinada em imagens sintéticas, contra o formulário (relatório)
 
-**Estado:** concluído para a PR. O desenho e as quatro hipóteses foram fixados **antes de qualquer treino ou medida** (seções 1 a 7); os resultados do teste, aberto uma só vez, estão na seção 8 e os limites na seção 9; a replicação com uma segunda semente está na seção 10. **Evidência: N1 em tudo** (desenho sintético, rótulos por construção; a palavra "acurácia" só aparece ao lado de N1). Decisão: `docs/decisoes/0023-imagem-contra-formulario-k35.md`. Brief: o brief interno (não incluído neste repositório). Código: `spikes/k35/`. Testes: `tests/test_k35_*.py`.
+**Estado:** concluído para a PR. O desenho e as quatro hipóteses foram fixados **antes de qualquer treino ou medida** (seções 1 a 7); os resultados do teste, aberto uma só vez, estão na seção 8 e os limites na seção 9; a replicação com uma segunda semente está na seção 10. **Evidência: N1 em tudo** (desenho sintético, rótulos por construção; a palavra "acurácia" só aparece ao lado de N1). Decisão: `docs/decisoes/0023-imagem-contra-formulario.md`. Brief: o brief interno (não incluído neste repositório). Código: `spikes/imagem_formulario/`. Testes: `tests/test_imagem_formulario_*.py`.
 
 > **Hipóteses fixadas em 19/11/2026**, na nota de desenho aprovada pela sessão de arquitetura, **antes** de gerar os dados, treinar ou rodar qualquer medida. Elas não mudam depois de ver resultado; todas são relatadas, também as que falharem.
 
 ## 1. O que se quer saber
 
-O professor sugeriu **comparar um modelo que recebe só imagens com o preenchimento do formulário**, treinando o modelo com milhares de imagens geradas de rótulo certo. No K34, modelos genéricos pequenos não leram o boneco, e a regra clássica lê o boneco limpo mas cai nas faixas difíceis do nível 2. Aqui se mede (a) o quanto de informação do formulário uma **rede treinada por nós** recupera da imagem; (b) se a imagem **ajuda** quando o formulário vem com campos faltando ou com erros.
+O professor sugeriu **comparar um modelo que recebe só imagens com o preenchimento do formulário**, treinando o modelo com milhares de imagens geradas de rótulo certo. No experimento imagem e laudo, modelos genéricos pequenos não leram o boneco, e a regra clássica lê o boneco limpo mas cai nas faixas difíceis do nível 2. Aqui se mede (a) o quanto de informação do formulário uma **rede treinada por nós** recupera da imagem; (b) se a imagem **ajuda** quando o formulário vem com campos faltando ou com erros.
 
 **O formulário é o teto nos dados sintéticos.** A classe vem dos mesmos atributos que geram a imagem e o formulário; sem erro e sem campo faltando, o formulário dá a classe certa por construção. A imagem só pode ajudar onde o formulário falha, e só vale para **membros** (a imagem não mostra acuidade, QI nem medidas). O modelo **sugere classes candidatas, sujeito à classificação oficial**; nunca "prescreve".
 
 ## 2. Dados
 
-- Geração com as funções que já existem (nível 1: `appearance_for` e `render`; nível 2: `render_level2`, faixas 0 a 3), com **sementes novas** (treino 1000, desenvolvimento 2000, teste 3000; o K34 usou 34). **Uso as 144 combinações de nível também no nível 2** (o K34 usava 75).
+- Geração com as funções que já existem (nível 1: `appearance_for` e `render`; nível 2: `render_level2`, faixas 0 a 3), com **sementes novas** (treino 1000, desenvolvimento 2000, teste 3000; o experimento imagem e laudo usou 34). **Uso as 144 combinações de nível também no nível 2** (o experimento imagem e laudo usava 75).
 - **Tamanhos por nível:** treino 6.000, desenvolvimento 1.000, teste 2.000 (1.500 de combinações vistas e 500 de combinações **seguradas**). No nível 2 cada combinação passa pelas quatro faixas.
-- Imagem reduzida 2x2 por média (de 400x280 para 200x140, `uint8`), guardada **fora do repositório** (`<pasta K35_HOME>\data`). O teste também guarda os PNG originais, que a linha de base clássica lê.
+- Imagem reduzida 2x2 por média (de 400x280 para 200x140, `uint8`), guardada **fora do repositório** (`<pasta IMAGEM_FORMULARIO_HOME>\data`). O teste também guarda os PNG originais, que a linha de base clássica lê.
 - **Rótulo da imagem:** o que a figura mostra (`?` onde o fim do membro está escondido ou cortado, e onde a cadeira ou a prótese está quase toda escondida). **Atributos verdadeiros:** o que o gerador construiu (o nível real de cada membro, escondido ou não). A rede é medida contra o rótulo da imagem; o **formulário e a classe** são medidos contra os atributos verdadeiros.
 
 ## 3. Divisão
@@ -22,17 +22,17 @@ O professor sugeriu **comparar um modelo que recebe só imagens com o preenchime
 - **12 das 144 combinações ficam fora do treino e do desenvolvimento** (sorteio com semente, conferindo que cada valor de cada membro continua no treino). Elas aparecem só no teste, medidas à parte.
 - Treino, desenvolvimento e teste usam **sementes disjuntas**. O teste unitário confere que nenhuma combinação segurada entra no treino ou no desenvolvimento e que nenhuma imagem se repete entre os conjuntos.
 - **O que isto testa de fato (H4):** como cada valor de cada membro continua no treino, a medida nas combinações seguradas mostra se as cabeças **confundem os membros entre si** (atalhos por correlação), **não** se a rede generaliza para um valor que nunca viu.
-- **Tudo o que se ajusta, ajusta-se no desenvolvimento.** O teste é aberto **uma vez** (`spikes/k35/final.py` recusa a segunda rodada; se um erro de **código**, não de ajuste, obrigar a repetir, as duas rodadas serão relatadas com o que mudou).
+- **Tudo o que se ajusta, ajusta-se no desenvolvimento.** O teste é aberto **uma vez** (`spikes/imagem_formulario/final.py` recusa a segunda rodada; se um erro de **código**, não de ajuste, obrigar a repetir, as duas rodadas serão relatadas com o que mudou).
 
 ## 4. A rede
 
-Cinco blocos convolucionais (3x3, normalização em lote, ReLU, pooling 2x2; 16, 32, 64, 96 e 128 canais). O último mapa (6x4x128) é **achatado, não promediado**, para a posição na figura sobreviver e a esquerda se distinguir da direita. Uma camada comum e **seis cabeças**: os quatro membros (níveis e `?`) e cadeira de rodas e prótese (sim, não, `?`). Entropia cruzada; no nível 1 as duas cabeças de cadeira e prótese não têm perda. Cerca de 1 milhão de parâmetros (o número exato está na seção de resultados). Uma só rede para os dois níveis. Adam com ciclo único de taxa de aprendizado, 20 épocas (a primeira tentativa, de 30, foi interrompida: não cabia no tempo), melhor época pelo desenvolvimento, teto de cerca de 2 h, `torch` em CPU no ambiente `k34-models`.
+Cinco blocos convolucionais (3x3, normalização em lote, ReLU, pooling 2x2; 16, 32, 64, 96 e 128 canais). O último mapa (6x4x128) é **achatado, não promediado**, para a posição na figura sobreviver e a esquerda se distinguir da direita. Uma camada comum e **seis cabeças**: os quatro membros (níveis e `?`) e cadeira de rodas e prótese (sim, não, `?`). Entropia cruzada; no nível 1 as duas cabeças de cadeira e prótese não têm perda. Cerca de 1 milhão de parâmetros (o número exato está na seção de resultados). Uma só rede para os dois níveis. Adam com ciclo único de taxa de aprendizado, 20 épocas (a primeira tentativa, de 30, foi interrompida: não cabia no tempo), melhor época pelo desenvolvimento, teto de cerca de 2 h, `torch` em CPU no ambiente `imagem-laudo-modelos`.
 
-**Aumento:** espelhar a imagem na horizontal **trocando esquerda e direita no rótulo** (as cabeças de cadeira e prótese não mudam), com teste unitário, e uma variação de brilho de até 10%. A **consistência do espelho** é medida no teste: a leitura da imagem espelhada deve ser a original com os lados trocados (foi onde o CLIP e o SmolVLM2 falharam no K34).
+**Aumento:** espelhar a imagem na horizontal **trocando esquerda e direita no rótulo** (as cabeças de cadeira e prótese não mudam), com teste unitário, e uma variação de brilho de até 10%. A **consistência do espelho** é medida no teste: a leitura da imagem espelhada deve ser a original com os lados trocados (foi onde o CLIP e o SmolVLM2 falharam no experimento imagem e laudo).
 
 ## 5. A classe vem das regras, não da rede
 
-A classe candidata é o conjunto das classes que o motor de regras dá como **atendidas** ou **limítrofes** a partir dos quatro níveis de membro e da **postura** (cadeira `yes`: sentado; prótese `yes`: com prótese; senão, em pé). O ambiente `k34-models` não tem `pyyaml` (o motor carrega um catálogo em YAML), então a tabela atributos-classe foi **calculada uma vez** com o ambiente do projeto (só leitura) e gravada em `spikes/k35/class_table.py`; um teste a compara com o motor em todas as combinações.
+A classe candidata é o conjunto das classes que o motor de regras dá como **atendidas** ou **limítrofes** a partir dos quatro níveis de membro e da **postura** (cadeira `yes`: sentado; prótese `yes`: com prótese; senão, em pé). O ambiente `imagem-laudo-modelos` não tem `pyyaml` (o motor carrega um catálogo em YAML), então a tabela atributos-classe foi **calculada uma vez** com o ambiente do projeto (só leitura) e gravada em `spikes/imagem_formulario/class_table.py`; um teste a compara com o motor em todas as combinações.
 
 **Três fatos sobre a classe que mudam a leitura das métricas:**
 
@@ -139,7 +139,7 @@ Calibração da rede (confiança contra acerto de membros, ECE em 10 faixas):
 | faixa 2 | 0,042 | 0,827 | 0,785 |
 | faixa 3 | 0,044 | 0,636 | 0,598 |
 
-**Leitura.** Nos casos limpos o espelho é perfeito (o K34 mostrou que o CLIP e o SmolVLM2 não sabiam esquerda de direita; esta rede, treinada com o espelho e a troca de rótulo, sabe). Nas faixas difíceis o espelho **falha mais**: nas faixas 2 e 3, os quatro membros juntos coincidem em só **50,8% e 37,0%** das imagens, embora cada membro sozinho coincida em 73% a 90%: a imagem espelhada muda a leitura em pelo menos um membro na maior parte das imagens. Cada membro sozinho coincide bem mais do que os quatro juntos, o que aponta para incerteza da rede no limite entre `?` e nível, e não para uma troca de lado; **não examinei caso a caso**. A rede é **bem calibrada** (ECE de 0 a 0,044), isto é, a confiança acompanha o acerto, o que torna o limiar da fusão significativo.
+**Leitura.** Nos casos limpos o espelho é perfeito (o experimento imagem e laudo mostrou que o CLIP e o SmolVLM2 não sabiam esquerda de direita; esta rede, treinada com o espelho e a troca de rótulo, sabe). Nas faixas difíceis o espelho **falha mais**: nas faixas 2 e 3, os quatro membros juntos coincidem em só **50,8% e 37,0%** das imagens, embora cada membro sozinho coincida em 73% a 90%: a imagem espelhada muda a leitura em pelo menos um membro na maior parte das imagens. Cada membro sozinho coincide bem mais do que os quatro juntos, o que aponta para incerteza da rede no limite entre `?` e nível, e não para uma troca de lado; **não examinei caso a caso**. A rede é **bem calibrada** (ECE de 0 a 0,044), isto é, a confiança acompanha o acerto, o que torna o limiar da fusão significativo.
 
 ### 8.5 A classe, pelas regras, a partir da leitura da imagem
 
@@ -160,7 +160,7 @@ Calibração da rede (confiança contra acerto de membros, ECE em 10 faixas):
 
 **Leitura.**
 - **Nível 1 e faixa 0:** a rede dá a classe certa em 100% (nível 1: 252 de 252 com classe não vazia); a clássica, com a postura verdadeira, em 99,7% e 97,2%.
-- **Em todas as imagens, a clássica ganha da rede nas faixas 1 a 3** (93,2% contra 84,2%; 78,0% contra 41,4%; 16,6% contra 7,6%). Não é leitura melhor: a rede responde "não decidiu" quando o membro está escondido (12,8%, 54,6% e 91,8% das imagens) e **isso conta como errado**; a clássica decide mais vezes e acerta muitas vezes o conjunto vazio, que é a classe verdadeira da maior parte das imagens (a K34 já tinha visto que ela lê membros mais longos do que são; é uma explicação provável, não verificada caso a caso).
+- **Em todas as imagens, a clássica ganha da rede nas faixas 1 a 3** (93,2% contra 84,2%; 78,0% contra 41,4%; 16,6% contra 7,6%). Não é leitura melhor: a rede responde "não decidiu" quando o membro está escondido (12,8%, 54,6% e 91,8% das imagens) e **isso conta como errado**; a clássica decide mais vezes e acerta muitas vezes o conjunto vazio, que é a classe verdadeira da maior parte das imagens (o experimento imagem e laudo já tinha visto que ela lê membros mais longos do que são; é uma explicação provável, não verificada caso a caso).
 - **No recorte de classe verdadeira não vazia, a rede ganha na faixa 1 (78,6%, 44 de 56, contra 62,5%) e na faixa 2 (31,2%, 10 de 32, contra 18,8%)**; na faixa 3, 0 de 22 contra 1 de 22. Os **n são pequenos (56, 32 e 22) e os intervalos largos** (faixa 2: 18 a 49% contra 9 a 35%, que se sobrepõem): não há aqui uma vantagem firme da rede na classe.
 - **Limite do desenho, não erro da rede:** onde a imagem esconde o nível, a imagem não dá a classe certa por construção. A diferença vem do formulário (ou da fusão), seção seguinte.
 
@@ -239,7 +239,7 @@ Os valores completos, linha por linha, estão no Apêndice A.
 9. **A linha de base clássica usa a postura verdadeira** para a classe (a clássica não lê cadeira nem prótese): isso a **favorece**. Mesmo assim, no recorte de classe verdadeira não vazia, a rede tem n de 22 a 56 e intervalos que se sobrepõem aos da clássica (8.5).
 10. **Cadeira de rodas e prótese no nível 1.** O boneco do nível 1 não tem nenhuma das duas; as cabeças só treinaram no nível 2, e no nível 1 a fusão trata os dois campos como "não" (o formulário não os deixa em branco).
 11. **Comparações múltiplas.** Cada hipótese exige todas as comparações (8, 8, 3 e 8) com intervalos de 95% sem correção; "confirmada" é **todas valeram**, não uma conta de erro conjunto. As hipóteses foram fixadas antes de qualquer rodada (19/11/2026).
-12. **Reprodução.** Sementes e tamanhos estão no código; imagens, pesos e saídas ficam **fora do repositório** (`<pasta K35_HOME>`), por tamanho. Uma pessoa que clone o repositório precisa gerar os dados (`k35.make_data`, cerca de 19 min) e treinar (cerca de 109 min na máquina usada).
+12. **Reprodução.** Sementes e tamanhos estão no código; imagens, pesos e saídas ficam **fora do repositório** (`<pasta IMAGEM_FORMULARIO_HOME>`), por tamanho. Uma pessoa que clone o repositório precisa gerar os dados (`imagem_formulario.make_data`, cerca de 19 min) e treinar (cerca de 109 min na máquina usada).
 13. **O que foi corrigido no processo e é visível acima:** um erro de código no relatório do desenvolvimento; uma tentativa de treino interrompida (nada visto no teste); um ensaio do script final com dados do desenvolvimento.
 
 
@@ -250,7 +250,7 @@ Os valores completos, linha por linha, estão no Apêndice A.
 ### 10.1 O que foi feito
 
 - **Segundo treino da mesma rede** (`run2`), mesma configuração, **mesmos dados e mesmas divisões**; só a semente de treino muda (semente 1, que controla a inicialização da rede, a ordem dos lotes e o sorteio do espelhamento). 20 épocas, melhor época pelo desenvolvimento, **limiar da fusão fixo em 0,5** (não foi escolhido de novo; `replicate.py` exige o 0,5). **Nada foi ajustado e nada foi escolhido entre as duas sementes**: as duas aparecem lado a lado.
-- **Avaliação no teste com um script à parte** (`spikes/k35/replicate.py`); o `final.py`, que recusa a segunda rodada, **não foi alterado nem desligado**. Para conferir o script, rodei antes a semente 0 nas duas posições: reproduziu os números da rodada 1 (por exemplo, fusão 74,1% com 0% de faltas e 0% de erros).
+- **Avaliação no teste com um script à parte** (`spikes/imagem_formulario/replicate.py`); o `final.py`, que recusa a segunda rodada, **não foi alterado nem desligado**. Para conferir o script, rodei antes a semente 0 nas duas posições: reproduziu os números da rodada 1 (por exemplo, fusão 74,1% com 0% de faltas e 0% de erros).
 - **Treino da semente 1:** 35,9 min (100 a 142 s por época), **máquina livre**, melhor época a **19** (acerto de membros no desenvolvimento 91,24%), pico de RAM 3.447 MB. A semente 0 levou 108,9 min (207 a 374 s por época) com a máquina dividida, melhor época a 16 (91,24%). **Os tempos das duas sementes não são comparáveis** (a primeira dividiu a máquina com outra rodada) e o acerto no desenvolvimento ficou igual até a quarta casa decimal nas duas, por coincidência.
 
 ### 10.2 As quatro hipóteses, nas duas sementes
@@ -313,7 +313,7 @@ Fusão no nível 2: classe automática correta e taxa de revisão (semente 0 / s
 
 ### 10.4 Análise posterior ao teste: o recorte de membro visível
 
-**Rótulo: análise posterior ao teste (não prevista antes).** Fecha a dúvida deixada em 8.3 e 8.7 (H2): só as imagens em que o rótulo do membro **não** é `?`, nível 2. Cada célula: acerto % (k/n; Wilson 95%). A "clássica" é a linha de base do K34, lendo os mesmos PNG; o "chute" é a classe mais comum entre os rótulos visíveis do treino.
+**Rótulo: análise posterior ao teste (não prevista antes).** Fecha a dúvida deixada em 8.3 e 8.7 (H2): só as imagens em que o rótulo do membro **não** é `?`, nível 2. Cada célula: acerto % (k/n; Wilson 95%). A "clássica" é a linha de base do experimento imagem e laudo, lendo os mesmos PNG; o "chute" é a classe mais comum entre os rótulos visíveis do treino.
 
 | faixa (nível 2) | membro | clássica | rede, semente 0 | rede, semente 1 | melhor chute constante (visíveis) |
 |---|---|---|---|---|---|
@@ -335,7 +335,7 @@ Fusão no nível 2: classe automática correta e taxa de revisão (semente 0 / s
 | faixa 3 | upper_right | 9,3% (27/291; 6,5 a 13,2) | 26,5% (77/291; 21,7 a 31,8) | 30,2% (88/291; 25,2 a 35,7) | 32,0% (93/291; 26,9 a 37,5) |
 
 **Leitura.**
-- **A rede ganha da clássica no recorte visível, nas duas sementes, em todas as faixas e membros** (faixa 1: 90,7% a 98,7% contra 75,4% a 85,4%; faixa 2: 70,6% a 86,8% contra 39,9% a 49,9%; faixa 3: 26,5% a 45,9% contra 6,6% a 10,9%). **A vantagem da rede sobre a clássica nas faixas 2 e 3 (H2) não vem só de saber dizer `?`.** A clássica, no recorte visível, **fica abaixo do chute constante na faixa 3, em todos os membros** (por exemplo, 6,6% contra 24,0% em `lower_left`; na faixa 2 ela ainda fica acima do chute, 39,9% a 49,9% contra 22,5% a 33,9%): é enganada sempre no mesmo sentido, como o K34 já tinha medido.
+- **A rede ganha da clássica no recorte visível, nas duas sementes, em todas as faixas e membros** (faixa 1: 90,7% a 98,7% contra 75,4% a 85,4%; faixa 2: 70,6% a 86,8% contra 39,9% a 49,9%; faixa 3: 26,5% a 45,9% contra 6,6% a 10,9%). **A vantagem da rede sobre a clássica nas faixas 2 e 3 (H2) não vem só de saber dizer `?`.** A clássica, no recorte visível, **fica abaixo do chute constante na faixa 3, em todos os membros** (por exemplo, 6,6% contra 24,0% em `lower_left`; na faixa 2 ela ainda fica acima do chute, 39,9% a 49,9% contra 22,5% a 33,9%): é enganada sempre no mesmo sentido, como o experimento imagem e laudo já tinha medido.
 - **Mas a rede também é fraca onde o fim do membro está visível e difícil (faixa 3).** Nos membros inferiores ela passa do chute nas duas sementes (41,3% e 45,9% contra 24,0%, `lower_left`; 45,3% e 43,6% contra 27,1%, `lower_right`). **Nos membros superiores da faixa 3 ela não se separa do chute**: `upper_left` 29,8% e 37,1% contra 33,1%; `upper_right` 26,5% e 30,2% contra 32,0% (os intervalos incluem o chute, salvo `upper_right` da semente 0, cujo limite superior, 31,8%, fica logo abaixo dele, 32,0%; a semente 0 fica abaixo do chute nos dois braços). A rede não "lê" o nível do braço visível na faixa 3 de forma comprovada por estes dados.
 - **O que isto muda na conclusão:** a confirmação de H2 **se sustenta** (a rede supera a clássica também onde o membro está visível), e a rede é uma **leitora útil até a faixa 2**; **na faixa 3 o ganho útil sobre o chute é só nas pernas**.
 

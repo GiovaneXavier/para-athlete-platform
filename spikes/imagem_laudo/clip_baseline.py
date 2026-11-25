@@ -1,7 +1,7 @@
-"""OpenCLIP zero-shot baseline (K34 design note, section 7b). Local files only; the network is not used.
+"""OpenCLIP zero-shot baseline (image-and-report check design note, section 7b). Local files only; the network is not used.
 
-    set PYTHONPATH=src;spikes/k34
-    <venv-k34>\\Scripts\\python.exe spikes/k34/clip_baseline.py --level 1
+    set PYTHONPATH=src;spikes/imagem_laudo
+    <venv-imagem-laudo>\\Scripts\\python.exe spikes/imagem_laudo/clip_baseline.py --level 1
 
 For each pair of sentences ("an amputated LEFT leg" against "an amputated RIGHT leg") CLIP picks the closer one. The
 expectation, written before the run, is near 50% on left and right (chance), because CLIP is known to mix up sides and

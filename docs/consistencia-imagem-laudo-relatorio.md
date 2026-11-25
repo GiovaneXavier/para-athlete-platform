@@ -1,6 +1,6 @@
-# K34: relatório da PR 3 (ramo `feature/k34-models`)
+# Experimento imagem e laudo: relatório da PR 3 (ramo interno)
 
-**Estado:** **passo A concluído (PR 24) e passo B concluído (ramo `feature/k34-run`).** Os downloads do passo A foram feitos depois do aval do usuário e conferidos por tamanho e SHA-256. **Evidência: N1 em tudo** (dado sintético nosso; a palavra "acurácia" só aparece ao lado de N1). Especificação: `docs/consistencia-imagem-laudo.md`.
+**Estado:** **passo A concluído (PR 24) e passo B concluído (ramo ramo interno).** Os downloads do passo A foram feitos depois do aval do usuário e conferidos por tamanho e SHA-256. **Evidência: N1 em tudo** (dado sintético nosso; a palavra "acurácia" só aparece ao lado de N1). Especificação: `docs/consistencia-imagem-laudo.md`.
 
 **Resultado em uma frase (N1):** com estes modelos pequenos e quantizados, rodando em CPU, **nenhum extrator de imagem leu o nível do membro nem o lado** nos desenhos do nível 1 e do nível 2: o SmolVLM2 respondeu "completo" para todos os membros, o Qwen2.5-VL-7B quase sempre também, e o CLIP ficou no acaso e **não mudou de resposta com a imagem espelhada**. O extrator de laudo (Qwen2.5-1.5B) acertou 33% a 50% por membro. O pipeline completo dá "não confere" em 93% a 99,5% dos pares consistentes, ou seja, **não é melhor que o chute "sempre não confere"**. Isto é um resultado sobre **estes modelos e estes prompts**, não sobre modelos abertos em geral.
 
@@ -49,7 +49,7 @@ Intervalos da v3 (Wilson 95%, bootstrap por imagem 95%): faixa 0 98,7% a 100,0% 
 | 5 | Qwen2.5-VL-7B-Instruct, `mmproj-Qwen2.5-VL-7B-Instruct-Q8_0.gguf` | projetor de visão do item 4 | mesmo repositório e commit | sha256 `2ddb555391bae966e412deab9e07b58afa18bcc06930ba0f1c78a3695ab9e506` | 853.119.712 bytes (853,1 MB) | Apache-2.0 |
 | 6 | Qwen2.5-1.5B-Instruct, `qwen2.5-1.5b-instruct-q4_k_m.gguf` | extrator de laudo (texto) | `https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF` | commit `91cad51170dc346986eccefdc2dd33a9da36ead9`; sha256 `6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e` | 1.117.320.736 bytes (1.117,3 MB) | Apache-2.0 |
 | 7 | OpenCLIP LAION ViT-B/32, `open_clip_model.safetensors` | linha de base CLIP zero-shot | `https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K` | commit `1a25a446712ba5ee05982a381eed697ef9b435cf`; sha256 `ac4f8c4b88af6d963118cbf40ad93176d092abbedfcb752601ae1866352656e6` | 605.143.316 bytes (605,1 MB) | MIT |
-| 8 | Pacotes Python de um **ambiente virtual novo, fora do repositório** (nunca `<ambiente do projeto>`): `torch` (CPU), `open_clip_torch`, `numpy`, `pillow`, `httpx` e as dependências deles | rodar o CLIP e conversar com o servidor local | PyPI (`https://pypi.org`), versões fixadas num `requirements.txt` próprio em `spikes/k34/` | versões atuais de hoje: `torch 2.15.0` (wheel de 126,7 MB, cp312 win_amd64), `open_clip_torch 3.3.0`, `pillow 13.0.0`, `numpy 2.5.4`, `httpx 0.28.1` | **cerca de 0,3 GB no total (estimativa)**; o pip resolve o número exato | Apache-2.0 (`torch`, conforme o PyPI), MIT (`open_clip_torch`), MIT-CMU (`pillow`), BSD-3-Clause (`numpy` e `httpx`) |
+| 8 | Pacotes Python de um **ambiente virtual novo, fora do repositório** (nunca `<ambiente do projeto>`): `torch` (CPU), `open_clip_torch`, `numpy`, `pillow`, `httpx` e as dependências deles | rodar o CLIP e conversar com o servidor local | PyPI (`https://pypi.org`), versões fixadas num `requirements.txt` próprio em `spikes/imagem_laudo/` | versões atuais de hoje: `torch 2.15.0` (wheel de 126,7 MB, cp312 win_amd64), `open_clip_torch 3.3.0`, `pillow 13.0.0`, `numpy 2.5.4`, `httpx 0.28.1` | **cerca de 0,3 GB no total (estimativa)**; o pip resolve o número exato | Apache-2.0 (`torch`, conforme o PyPI), MIT (`open_clip_torch`), MIT-CMU (`pillow`), BSD-3-Clause (`numpy` e `httpx`) |
 
 **Espaço total em disco:** os itens 1 a 7 somam **8.988.512.573 bytes (8,99 GB, 8,37 GiB)**; com o item 8 (estimado), **cerca de 9,3 GB**; o zip do item 1 descompactado ocupa um pouco mais que os 24,7 MB. Há **221,7 GB livres** no disco C:. Os pesos e o ambiente ficam **fora do repositório** (pasta de trabalho local, no `.gitignore`).
 
@@ -57,7 +57,7 @@ Intervalos da v3 (Wilson 95%, bootstrap por imagem 95%): faixa 0 98,7% a 100,0% 
 
 ## Passo B: os modelos rodaram
 
-Código em `spikes/k34/` (só `.py`, `.md` e `.txt`; nenhum peso, binário, imagem ou resultado entra no repositório; o teste de isolamento confere). Ambiente virtual novo **fora** do repositório (`<venv-k34>`, 813 MB; o `para-triage` não foi tocado); pesos e resultados em `<pasta K34_MODELS>` (8,5 GB), fora do repositório. `pyproject.toml` não mudou.
+Código em `spikes/imagem_laudo/` (só `.py`, `.md` e `.txt`; nenhum peso, binário, imagem ou resultado entra no repositório; o teste de isolamento confere). Ambiente virtual novo **fora** do repositório (`<venv-imagem-laudo>`, 813 MB; o `para-triage` não foi tocado); pesos e resultados em `<pasta IMAGEM_LAUDO_MODELOS>` (8,5 GB), fora do repositório. `pyproject.toml` não mudou.
 
 ### Downloads e o que roda
 
@@ -124,7 +124,7 @@ O texto dos laudos tem erros de digitação plantados (ruído) e frases de vári
 
 ### Correção do prompt do laudo (v4, rodada posterior; Qwen2.5-1.5B; N1)
 
-**O que mudou.** Só a regra de cadeira de rodas e prótese e o exemplo: "yes" se o laudo diz que usa (usa, faz uso de), "no" se diz que não usa (não usa, sem uso de, sem prótese), `?` só se o laudo não diz nada; o exemplo ganhou "Não usa cadeira de rodas. Faz uso de prótese.". As regras de membro são as da v3 (`spikes/k34/prompts.py`, `PROMPTS["v4"]`, só o laudo). Primeiro no `dev` do nível 2 (82 laudos, uma tentativa), depois nos laudos inteiros do `eval`.
+**O que mudou.** Só a regra de cadeira de rodas e prótese e o exemplo: "yes" se o laudo diz que usa (usa, faz uso de), "no" se diz que não usa (não usa, sem uso de, sem prótese), `?` só se o laudo não diz nada; o exemplo ganhou "Não usa cadeira de rodas. Faz uso de prótese.". As regras de membro são as da v3 (`spikes/imagem_laudo/prompts.py`, `PROMPTS["v4"]`, só o laudo). Primeiro no `dev` do nível 2 (82 laudos, uma tentativa), depois nos laudos inteiros do `eval`.
 
 **Ressalva de método.** A v4 foi escrita **depois** de eu ter visto os números do `eval` com a v3. Portanto os números da v4 no `eval` mostram que a **correção funciona**, mas **não são um teste limpo** de um prompt escolhido às cegas; o `dev` (82 laudos) foi olhado antes, sem ter sido a origem do defeito.
 
@@ -160,7 +160,7 @@ No `dev`, a v4 deu wheelchair 96,3% (79/82) e prosthesis 76,8% (63/82).
 
 ### O que isto significa (e o que não)
 
-- **Para o objetivo do K34 (conferir imagem e laudo com modelos abertos locais):** com **esta classe de modelo** (VLM de 2 a 7 B quantizado em Q4, CPU, 280x400) e **estes prompts**, a leitura da imagem **não** funciona; o pipeline fica no nível do acaso. A linha de base clássica do nível 1 (99,8%) mostra que o desenho permite ler o nível, só que **um modelo de visão genérico não o lê**.
+- **Para o objetivo do experimento imagem e laudo (conferir imagem e laudo com modelos abertos locais):** com **esta classe de modelo** (VLM de 2 a 7 B quantizado em Q4, CPU, 280x400) e **estes prompts**, a leitura da imagem **não** funciona; o pipeline fica no nível do acaso. A linha de base clássica do nível 1 (99,8%) mostra que o desenho permite ler o nível, só que **um modelo de visão genérico não o lê**.
 - **Não significa** que nenhum modelo aberto serve: não testei modelos maiores, nem float16, nem GPU, nem ajuste fino (a seção 6.3 da nota deixou isso fora de propósito). O limite que vi parece de **capacidade e de resolução** (o Qwen vê cores e diz que os braços diferem "um pouco").
 - **Não é sobre fotografia.** Tudo é N1: desenho sintético, rótulos nossos. O nível 3 (30 fotos) segue **fora** até o usuário aprovar o manifesto e rever as fotos.
 - O extrator de laudo **melhorou na negação** com a v4 (nível 2), mas **piorou no silêncio** (nível 1); com um modelo maior, ou com exemplo dos dois casos, **não** foi tentado.

@@ -1,6 +1,6 @@
 """The development checkpoint: the trained network on the development set only (never the test set).
 
-    PYTHONPATH=src;spikes  python -m k35.dev --name run1
+    PYTHONPATH=src;spikes  python -m imagem_formulario.dev --name run1
 """
 from __future__ import annotations
 

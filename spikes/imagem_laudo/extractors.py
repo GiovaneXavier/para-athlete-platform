@@ -1,4 +1,4 @@
-"""Model extractors for the K34 pipeline. An image extractor is `png bytes -> Attrs`, a report extractor `text -> Attrs`.
+"""Model extractors for the image-and-report check pipeline. An image extractor is `png bytes -> Attrs`, a report extractor `text -> Attrs`.
 
 Every answer is cached in a JSONL file keyed by the input's SHA-1, so a long run can be stopped and resumed, and so that
 the table of results can be rebuilt without asking a model again. A request that fails (HTTP error or broken JSON) is

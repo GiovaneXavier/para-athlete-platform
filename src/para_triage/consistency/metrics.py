@@ -1,4 +1,4 @@
-"""Metrics of K34 (design note section 8), all at evidence level N1 (synthetic data, our labels).
+"""Metrics of image-and-report check (design note section 8), all at evidence level N1 (synthetic data, our labels).
 
 * Wilson 95% intervals for proportions.
 * A bootstrap by IMAGE for aggregates: the seven pairs of one image are not independent, so whole

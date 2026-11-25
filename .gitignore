@@ -13,8 +13,8 @@ data/processed/
 runs/
 checkpoints/
 *.pt
-# Weights of the K35 image network (synthetic data only, 3.9 MB each): published on purpose in docs/modelo-k35/
-!docs/modelo-k35/*.pt
+# Weights of the image network (synthetic data only, 3.9 MB each): published on purpose in docs/modelo-imagem/
+!docs/modelo-imagem/*.pt
 
 # Local agent tooling (restore with the skills lock file)
 .agents/

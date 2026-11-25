@@ -6,7 +6,7 @@ and H1 to H4 are re-evaluated with the same criteria. Nothing is chosen between 
 It also computes, AFTER the test (analysis not planned before it), the classical baseline and the best constant guess on the visible slice
 (image label different from `?`) beside the network of each seed.
 
-    PYTHONPATH=src;spikes  python -m k35.replicate --first run1 --second run2
+    PYTHONPATH=src;spikes  python -m imagem_formulario.replicate --first run1 --second run2
 """
 from __future__ import annotations
 
