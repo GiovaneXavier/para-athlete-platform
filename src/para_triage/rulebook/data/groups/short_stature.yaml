@@ -1,0 +1,123 @@
+# Rule book of the short stature group (classes 40 and 41). The numbers are the ones of rules/classes.yaml (a test compares them).
+rulebook: short_stature
+schema: 1
+applies_to: [short_stature]
+classes: [40, 41]
+measures: [sex, height_cm, longest_arm_cm]   # in this order: it is the order of `missing` in the current engine
+derived:
+  total_cm: {sum: [height_cm, longest_arm_cm]}   # absent when any part is absent
+
+# Each parameter is chosen by the sex of the profile (M or F).
+parameters:
+  max_height_class_40:
+    by: {measure: sex, map: {M: male, F: female}}
+    unit: cm
+    values:
+      male: [{from: 2024-01-01, to: null, value: 130}]
+      female: [{from: 2024-01-01, to: null, value: 125}]
+    source: {doc: cpb-booklet-2024, page: 24}
+    status: implemented
+  max_arm_class_40:
+    by: {measure: sex, map: {M: male, F: female}}
+    unit: cm
+    values:
+      male: [{from: 2024-01-01, to: null, value: 59}]
+      female: [{from: 2024-01-01, to: null, value: 57}]
+    source: {doc: cpb-booklet-2024, page: 24}
+    status: implemented
+  max_sum_class_40:
+    by: {measure: sex, map: {M: male, F: female}}
+    unit: cm
+    values:
+      male: [{from: 2024-01-01, to: null, value: 180}]
+      female: [{from: 2024-01-01, to: null, value: 173}]
+    source: {doc: cpb-booklet-2024, page: 24}
+    status: implemented
+  max_height_class_41:
+    by: {measure: sex, map: {M: male, F: female}}
+    unit: cm
+    values:
+      male: [{from: 2024-01-01, to: null, value: 145}]
+      female: [{from: 2024-01-01, to: null, value: 137}]
+    source: {doc: cpb-booklet-2024, page: 25}
+    status: implemented
+  max_arm_class_41:
+    by: {measure: sex, map: {M: male, F: female}}
+    unit: cm
+    values:
+      male: [{from: 2024-01-01, to: null, value: 66}]
+      female: [{from: 2024-01-01, to: null, value: 63}]
+    source: {doc: cpb-booklet-2024, page: 25}
+    status: implemented
+  max_sum_class_41:
+    by: {measure: sex, map: {M: male, F: female}}
+    unit: cm
+    values:
+      male: [{from: 2024-01-01, to: null, value: 200}]
+      female: [{from: 2024-01-01, to: null, value: 190}]
+    source: {doc: cpb-booklet-2024, page: 25}
+    status: implemented
+
+criteria:
+  height_40:
+    measure: height_cm
+    test: {op: lt, value: max_height_class_40, inclusive: true}
+    reason: SS_WITHIN_LIMIT
+    source: {doc: cpb-booklet-2024, page: 24}
+    status: implemented
+  arm_40:
+    measure: longest_arm_cm
+    test: {op: lt, value: max_arm_class_40, inclusive: true}
+    reason: SS_WITHIN_LIMIT
+    source: {doc: cpb-booklet-2024, page: 24}
+    status: implemented
+  sum_40:
+    measure: total_cm
+    test: {op: lt, value: max_sum_class_40, inclusive: true}
+    reason: SS_WITHIN_LIMIT
+    source: {doc: cpb-booklet-2024, page: 24}
+    status: implemented
+  height_41:
+    measure: height_cm
+    test: {op: lt, value: max_height_class_41, inclusive: true}
+    reason: SS_WITHIN_LIMIT
+    source: {doc: cpb-booklet-2024, page: 25}
+    status: implemented
+  arm_41:
+    measure: longest_arm_cm
+    test: {op: lt, value: max_arm_class_41, inclusive: true}
+    reason: SS_WITHIN_LIMIT
+    source: {doc: cpb-booklet-2024, page: 25}
+    status: implemented
+  sum_41:
+    measure: total_cm
+    test: {op: lt, value: max_sum_class_41, inclusive: true}
+    reason: SS_WITHIN_LIMIT
+    source: {doc: cpb-booklet-2024, page: 25}
+    status: implemented
+
+class_rules:                       # the three limits at the same time
+  40: {all_of: [height_40, arm_40, sum_40]}
+  41: {all_of: [height_41, arm_41, sum_41]}
+
+decision:
+  - id: measure_missing
+    when: {any_missing: [sex, height_cm, longest_arm_cm]}
+    result: {all: insufficient_data}
+    reason: SS_MEASURE_MISSING
+  - id: some_class_met
+    when: {any_class: true}
+    result: {meets: {pick: most_impaired}, rest: not_met}
+  - id: default
+    result: {all: not_met}
+    reason: SS_LIMITS_EXCEEDED
+
+tests:
+  - {name: inside class 40 (male), input: {sex: M, height_cm: 110, longest_arm_cm: 48}, expect: {40: meets, 41: not_met}, criterion: sum_40, source: {doc: cpb-booklet-2024, page: 24}}
+  - {name: exactly on the arm and sum limits of class 40 (male), input: {sex: M, height_cm: 121, longest_arm_cm: 59}, expect: {40: meets, 41: not_met}, criterion: sum_40, source: {doc: cpb-booklet-2024, page: 24}}
+  - {name: one cm over the class 40 sum is class 41 (male), input: {sex: M, height_cm: 122, longest_arm_cm: 59}, expect: {40: not_met, 41: meets}, criterion: sum_40, source: {doc: cpb-booklet-2024, page: 24}}
+  - {name: class 41 sum limit (female), input: {sex: F, height_cm: 127, longest_arm_cm: 63}, expect: {40: not_met, 41: meets}, criterion: sum_41, source: {doc: cpb-booklet-2024, page: 25}}
+  - {name: over every limit, input: {sex: F, height_cm: 150, longest_arm_cm: 70}, expect: {40: not_met, 41: not_met}, criterion: height_41, source: {doc: cpb-booklet-2024, page: 25}}
+  - {name: sex missing, input: {height_cm: 110, longest_arm_cm: 48}, expect: {40: insufficient_data, 41: insufficient_data}, criterion: height_40, source: {doc: cpb-booklet-2024, page: 24}}
+  - {name: arm missing, input: {sex: M, height_cm: 110}, expect: {40: insufficient_data}, criterion: arm_40, source: {doc: cpb-booklet-2024, page: 24}}
+  - {name: other impairment, input: {sex: M, height_cm: 110, longest_arm_cm: 48, impairments: [visual]}, expect: {40: not_applicable, 41: not_applicable}, criterion: height_40, source: {doc: cpb-booklet-2024, page: 24}}

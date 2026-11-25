@@ -1,0 +1,14 @@
+# Documents the rule book can cite. Only a reference of where to read: no booklet text is copied here.
+sources:
+  cpb-booklet-2024:
+    title: "CPB, Perfil de Classes do Atletismo"
+    publisher: CPB
+    version: "2024"
+    date: 2024-01-01
+    pages: {visual: 14, short_stature: [24, 25], limb_standing: [26, 30], limb_prosthesis: [35, 36], intellectual: 16, frame_runner: 37, wheelchair: [55, 61], neuro: [18, 23]}
+  wpa-2023:
+    title: "World Para Athletics, Classification Rules and Regulations"
+    publisher: World Para Athletics
+    version: "2023"
+    date: 2023-02-17
+    note: "Appendix Three, intellectual impairment: the onset before 18; no IQ limit (it refers to the Virtus criteria, a questionnaire and a battery of tests); class T/F20 is specific to the event. Only the age of onset is read here."

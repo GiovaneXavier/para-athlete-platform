@@ -1,0 +1,98 @@
+# Rule book of the frame running group, the Petra (classes 71 and 72). It reproduces evaluate_frame_runner in
+# rules/evaluators/functional.py, which is our reading of the booklet (docs/rules_coverage.md, items 15 and 16): everything
+# in this group is `provisional`, to be replaced by the matrix of the specialist. Nothing here corrects the engine.
+#
+# The neurological report gate (`brain_report_missing`, `no_brain_report`) is the same one that the neuro group uses
+# (`_brain_gate` in the engine). The format has no reuse across files, so the neuro file repeats the two rules and the
+# flag on purpose.
+rulebook: frame_runner
+schema: 1
+applies_to: [hypertonia, ataxia, athetosis]
+classes: [71, 72]
+measures: [posture, brain_impairment_report, neuro_severity, transfers_independently, walks_short_distances, trunk_straps_needed]
+
+# Values each discrete measure can take, for the tools that build every combination (the interpreter ignores it).
+domains:
+  posture: [standing, prosthesis, seated, frame_runner]
+  brain_impairment_report: [false, true]
+  neuro_severity: [0, 1, 2, 3]            # none, mild, moderate, severe
+  transfers_independently: [false, true]
+  walks_short_distances: [false, true]
+  trunk_straps_needed: [false, true]
+
+parameters:
+  required_posture:
+    values: [{from: 2024-01-01, to: null, value: frame_runner}]
+    source: {doc: cpb-booklet-2024, page: 37, note: "the classes compete with the Petra (frame runner); the postures come from the catalog"}
+    status: provisional
+  # Our reading: the booklet describes the classes in words, and the engine asks for moderate or severe (coverage item 16).
+  min_severity:
+    unit: ordinal severity (0 none, 1 mild, 2 moderate, 3 severe)
+    values: [{from: 2024-01-01, to: null, value: 2}]
+    source: {doc: cpb-booklet-2024, page: 37, note: "our reading: moderate or severe functional severity (coverage item 16)"}
+    status: provisional
+
+flags:
+  wrong_posture:
+    measure: posture
+    test: {op: ne, value: required_posture}
+    reason: FRAME_WRONG_POSTURE
+    source: {doc: cpb-booklet-2024, page: 37, note: "posture of the classes 71 and 72"}
+    status: provisional
+  no_brain_report:
+    measure: brain_impairment_report
+    test: {op: eq, value: false}
+    reason: BRAIN_REPORT_REQUIRED
+    source: {doc: cpb-booklet-2024, page: 37, note: "our reading: a neurological report proving the brain impairment is required"}
+    status: provisional
+  severity_too_low:
+    measure: neuro_severity
+    test: {op: lt, value: min_severity}
+    reason: FRAME_SEVERITY_TOO_LOW
+    source: {doc: cpb-booklet-2024, page: 37, note: "our reading: below moderate is not enough for the Petra classes (coverage item 16)"}
+    status: provisional
+  cannot_transfer:
+    measure: transfers_independently
+    test: {op: eq, value: false}
+    reason: FRAME_CANNOT_TRANSFER
+    source: {doc: cpb-booklet-2024, page: 37, note: "our reading: not transferring alone to the Petra is class 71 (coverage item 16)"}
+    status: provisional
+  walks:
+    measure: walks_short_distances
+    test: {op: ne, value: false}
+    reason: FRAME_CONTRADICTION_WALKS
+    source: {doc: cpb-booklet-2024, page: 37, note: "our reading: walking short distances contradicts not transferring alone (coverage item 16)"}
+    status: provisional
+  trunk_straps:
+    measure: trunk_straps_needed
+    test: {op: ne, value: false}
+    reason: FRAME_CONTRADICTION_STRAPS
+    source: {doc: cpb-booklet-2024, page: 37, note: "our reading: needing trunk straps contradicts transferring alone (coverage item 16)"}
+    status: provisional
+
+# Decision: the first rule whose `when` holds applies; every rule says which missing fields it reports, as the engine does.
+decision:
+  - {id: posture_missing, when: {any_missing: [posture]}, result: {all: insufficient_data}, report_missing: [posture], reason: LIMB_POSTURE_MISSING}
+  - {id: wrong_posture, when: {flag: wrong_posture}, result: {all: not_met}, report_missing: [], reason: FRAME_WRONG_POSTURE}
+  - {id: brain_report_missing, when: {any_missing: [brain_impairment_report]}, result: {all: insufficient_data}, report_missing: [brain_impairment_report], reason: BRAIN_REPORT_MISSING}
+  - {id: no_brain_report, when: {flag: no_brain_report}, result: {all: not_met}, report_missing: [], reason: BRAIN_REPORT_REQUIRED}
+  - {id: severity_missing, when: {any_missing: [neuro_severity]}, result: {all: insufficient_data}, report_missing: [neuro_severity], reason: NEURO_SEVERITY_MISSING}
+  - {id: severity_too_low, when: {flag: severity_too_low}, result: {all: not_met}, report_missing: [], reason: FRAME_SEVERITY_TOO_LOW}
+  - {id: transfer_missing, when: {any_missing: [transfers_independently]}, result: {all: insufficient_data}, report_missing: [transfers_independently], reason: FRAME_TRANSFER_MISSING}
+  - {id: cannot_transfer_but_walks, when: {flag: [cannot_transfer, walks]}, result: {borderline: [71, 72]}, report_missing: [], reason: FRAME_CONTRADICTION_WALKS}
+  - {id: cannot_transfer, when: {flag: cannot_transfer}, result: {classes: {71: meets}, rest: not_met}, report_missing: [], reason: FRAME_CANNOT_TRANSFER}
+  - {id: transfers_but_needs_straps, when: {flag: trunk_straps}, result: {borderline: [71, 72]}, report_missing: [], reason: FRAME_CONTRADICTION_STRAPS}
+  - {id: transfers_independently, result: {classes: {72: meets}, rest: not_met}, report_missing: [], reason: FRAME_TRANSFERS}
+
+# Tests as data, each tied to a flag or a decision rule and a source.
+tests:
+  - {name: cannot transfer alone is class 71, input: {posture: frame_runner, brain_impairment_report: true, neuro_severity: 3, transfers_independently: false}, expect: {71: meets, 72: not_met}, criterion: cannot_transfer, source: {doc: cpb-booklet-2024, page: 37}}
+  - {name: transferring alone is class 72, input: {posture: frame_runner, brain_impairment_report: true, neuro_severity: 2, transfers_independently: true}, expect: {71: not_met, 72: meets}, criterion: transfers_independently, source: {doc: cpb-booklet-2024, page: 37}}
+  - {name: not transferring but walking is borderline, input: {posture: frame_runner, brain_impairment_report: true, neuro_severity: 2, transfers_independently: false, walks_short_distances: true}, expect: {71: borderline, 72: borderline}, criterion: cannot_transfer_but_walks, source: {doc: cpb-booklet-2024, page: 37}}
+  - {name: transferring but needing straps is borderline, input: {posture: frame_runner, brain_impairment_report: true, neuro_severity: 2, transfers_independently: true, trunk_straps_needed: true}, expect: {71: borderline, 72: borderline}, criterion: trunk_straps, source: {doc: cpb-booklet-2024, page: 37}}
+  - {name: mild severity is not enough, input: {posture: frame_runner, brain_impairment_report: true, neuro_severity: 1, transfers_independently: true}, expect: {71: not_met, 72: not_met}, criterion: severity_too_low, source: {doc: cpb-booklet-2024, page: 37}}
+  - {name: no neurological report, input: {posture: frame_runner, brain_impairment_report: false}, expect: {71: not_met, 72: not_met}, criterion: no_brain_report, source: {doc: cpb-booklet-2024, page: 37}}
+  - {name: the report not provided is asked for, input: {posture: frame_runner}, expect: {71: insufficient_data}, criterion: brain_report_missing, source: {doc: cpb-booklet-2024, page: 37}}
+  - {name: another posture rules the group out, input: {posture: seated}, expect: {71: not_met, 72: not_met}, criterion: wrong_posture, source: {doc: cpb-booklet-2024, page: 37}}
+  - {name: the transfer not recorded is asked for, input: {posture: frame_runner, brain_impairment_report: true, neuro_severity: 3}, expect: {71: insufficient_data, 72: insufficient_data}, criterion: transfer_missing, source: {doc: cpb-booklet-2024, page: 37}}
+  - {name: other impairment, input: {posture: frame_runner, impairments: [visual]}, expect: {71: not_applicable}, criterion: transfers_independently, source: {doc: cpb-booklet-2024, page: 37}}

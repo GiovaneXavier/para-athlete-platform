@@ -1,0 +1,104 @@
+# Para athletics class catalog (v0).
+# Sources: CPB "Classificacao Esportiva Paralimpica - Perfil de Classes do Atletismo" (Jan 2024)
+# and the class/event lists on lexi.global/sports/athletics.
+# `source_page` is the page of the T-class in the CPB booklet table of contents.
+# Events and equipment are NOT yet validated (see docs/rules_coverage.md).
+
+groups:
+  visual:          {impairments: [visual], evaluator: visual, implemented: true}
+  intellectual:    {impairments: [intellectual], evaluator: intellectual, implemented: true}
+  neuro:           {impairments: [hypertonia, ataxia, athetosis], evaluator: neuro, implemented: true}
+  short_stature:   {impairments: [short_stature], evaluator: short_stature, implemented: true}
+  limb_standing:   {impairments: [limb_deficiency, muscle_power, rom, leg_length_difference], evaluator: limb_standing, implemented: true}
+  wheelchair:      {impairments: [limb_deficiency, muscle_power, rom, leg_length_difference], evaluator: seated, implemented: true}
+  limb_prosthesis: {impairments: [limb_deficiency], evaluator: limb_prosthesis, implemented: true}
+  frame_runner:    {impairments: [hypertonia, ataxia, athetosis], evaluator: frame_runner, implemented: true}
+
+classes:
+  # --- Visual impairment ---------------------------------------------------
+  11:
+    group: visual
+    name_pt: Deficiência visual - perda visual máxima
+    events: [track, jump, field]
+    equipment: [guide_runner]
+    source_page: 14
+    criteria: {logmar_gt: 2.60}
+  12:
+    group: visual
+    name_pt: Deficiência visual - perda visual intermediária
+    events: [track, jump, field]
+    equipment: [guide_runner_optional]
+    source_page: 14
+    criteria: {logmar_min: 1.50, logmar_max: 2.60, field_lt_deg: 10}
+  13:
+    group: visual
+    name_pt: Deficiência visual - perda visual leve
+    events: [track, jump, field]
+    source_page: 14
+    criteria: {logmar_min: 1.00, logmar_max: 1.40, field_lt_deg: 40}
+
+  # --- Intellectual impairment ----------------------------------------------
+  20:
+    group: intellectual
+    name_pt: Deficiência intelectual
+    events: [track, jump, field]
+    source_page: 16
+    criteria: {iq_max: 75, onset_before_age: 22}
+
+  # --- Brain impairment (hypertonia / ataxia / athetosis) --------------------
+  31: {group: neuro, name_pt: "Comprometimento encefálico severo (sentado, propulsão com os pés)", postures: [seated], events: [track, field], equipment: [racing_wheelchair, throwing_frame], source_page: 18}
+  32: {group: neuro, name_pt: "Comprometimento encefálico severo a moderado (sentado, propulsão com os braços)", postures: [seated], events: [track, field], equipment: [racing_wheelchair, throwing_frame], source_page: 18}
+  33: {group: neuro, name_pt: "Comprometimento encefálico moderado (sentado)", postures: [seated], events: [track, field], equipment: [racing_wheelchair, throwing_frame], source_page: 19}
+  34: {group: neuro, name_pt: "Diplegia com função preservada de membros superiores (sentado)", postures: [seated], events: [track, field], equipment: [racing_wheelchair, throwing_frame], source_page: 20}
+  35: {group: neuro, name_pt: "Diplegia leve (em pé)", postures: [standing], events: [track, field], source_page: 20}
+  36: {group: neuro, name_pt: "Atetose / ataxia (em pé)", postures: [standing], events: [track, jump, field], source_page: 21}
+  37: {group: neuro, name_pt: "Hemiplegia (em pé)", postures: [standing], events: [track, jump, field], source_page: 22}
+  38: {group: neuro, name_pt: "Comprometimento encefálico leve (em pé)", postures: [standing], events: [track, jump, field], source_page: 23}
+
+  # --- Short stature ----------------------------------------------------------
+  40:
+    group: short_stature
+    name_pt: Baixa estatura (mais severa)
+    postures: [standing]
+    events: [field]
+    source_page: 24
+    criteria:
+      male:   {max_height_cm: 130, max_arm_cm: 59, max_sum_cm: 180}
+      female: {max_height_cm: 125, max_arm_cm: 57, max_sum_cm: 173}
+  41:
+    group: short_stature
+    name_pt: Baixa estatura
+    postures: [standing]
+    events: [field]
+    source_page: 25
+    criteria:
+      male:   {max_height_cm: 145, max_arm_cm: 66, max_sum_cm: 200}
+      female: {max_height_cm: 137, max_arm_cm: 63, max_sum_cm: 190}
+
+  # --- Limb deficiency / strength / ROM / leg length, standing, no prosthesis ---
+  42: {group: limb_standing, name_pt: "Amputação unilateral através ou acima do joelho", postures: [standing], events: [track, jump, field], source_page: 26}
+  43: {group: limb_standing, name_pt: "Comprometimento bilateral abaixo do joelho", postures: [standing], events: [track, field], source_page: 27}
+  44: {group: limb_standing, name_pt: "Comprometimento unilateral abaixo do joelho", postures: [standing], events: [track, jump, field], source_page: 28}
+  45: {group: limb_standing, name_pt: "Comprometimento bilateral de membros superiores (cotovelo)", postures: [standing], events: [track, jump, field], source_page: 28}
+  46: {group: limb_standing, name_pt: "Comprometimento unilateral de cotovelo ou bilateral de punho", postures: [standing], events: [track, jump, field], source_page: 29}
+  47: {group: limb_standing, name_pt: "Comprometimento unilateral de punho", postures: [standing], events: [track, jump], source_page: 30}
+
+  # --- Seated physical classes -------------------------------------------------------------
+  # Numbered as the F (field) classes. `track_equivalent` is the T class with the same profile.
+  51: {group: wheelchair, name_pt: "Lesão medular C5-C6: déficit de ombro, extensores de cotovelo e dedos", postures: [seated], events: [track, field], track_equivalent: 51, equipment: [racing_wheelchair, throwing_frame], source_page: 55}
+  52: {group: wheelchair, name_pt: "Lesão medular C7: déficit de flexão e extensão dos dedos", postures: [seated], events: [track, field], track_equivalent: 52, equipment: [racing_wheelchair, throwing_frame], source_page: 56}
+  53: {group: wheelchair, name_pt: "Lesão medular C8: só os músculos intrínsecos da mão comprometidos", postures: [seated], events: [track, field], track_equivalent: 52, equipment: [racing_wheelchair, throwing_frame], source_page: 58}
+  54: {group: wheelchair, name_pt: "Lesão medular T1-T7: sem função de tronco, braços preservados", postures: [seated], events: [track, field], track_equivalent: 53, equipment: [racing_wheelchair, throwing_frame], source_page: 58}
+  55: {group: wheelchair, name_pt: "Lesão toracolombar T8-L1: tronco parcial ou total, quadril limitado", postures: [seated], events: [track, field], track_equivalent: 54, equipment: [racing_wheelchair, throwing_frame], source_page: 59}
+  56: {group: wheelchair, name_pt: "Lesão lombar L2-L4 ou amputação alta: quadril e joelho parciais", postures: [seated], events: [track, field], track_equivalent: 54, equipment: [racing_wheelchair, throwing_frame], source_page: 60}
+  57: {group: wheelchair, name_pt: "Comprometimento de membros inferiores ao nível do tornozelo", postures: [seated], events: [track, field], track_equivalent: 54, equipment: [racing_wheelchair, throwing_frame], source_page: 61}
+
+  # --- Limb deficiency with prosthesis -----------------------------------------
+  61: {group: limb_prosthesis, name_pt: "Amputação bilateral acima do joelho (prótese)", postures: [prosthesis], events: [track, jump, field], equipment: [running_prosthesis], source_page: 35}
+  62: {group: limb_prosthesis, name_pt: "Amputação bilateral abaixo do joelho (prótese)", postures: [prosthesis], events: [track, jump, field], equipment: [running_prosthesis], source_page: 35}
+  63: {group: limb_prosthesis, name_pt: "Amputação unilateral através ou acima do joelho (prótese)", postures: [prosthesis], events: [track, jump, field], equipment: [running_prosthesis], source_page: 36}
+  64: {group: limb_prosthesis, name_pt: "Amputação unilateral abaixo do joelho (prótese)", postures: [prosthesis], events: [track, jump, field], equipment: [running_prosthesis], source_page: 36}
+
+  # --- Frame running (Petra) -----------------------------------------------------
+  71: {group: frame_runner, name_pt: "Comprometimento encefálico severo na marcha (Petra)", postures: [frame_runner], events: [track], equipment: [frame_runner], source_page: 37}
+  72: {group: frame_runner, name_pt: "Comprometimento encefálico moderado na marcha (Petra)", postures: [frame_runner], events: [track], equipment: [frame_runner], source_page: 37}

@@ -1,0 +1,260 @@
+# Rule book of the limb deficiency group standing, without prosthesis (classes 42 to 47). It mirrors
+# rules/evaluators/limb.py, and a regression compares the whole product of the discrete measures with the current engine.
+#
+# The group has a gate (the posture) and two pathways that run when their impairments are declared and are merged class by
+# class, keeping the best status (the engine's order: meets, borderline, needs_review, insufficient_data, not_met). The
+# amputation pathway reads the levels per side as a table of rows (one decision rule each, with the id of the row in the
+# study mode); the strength pathway reads the ankle and leg-length measures, the sides and the hip and knee deficit.
+rulebook: limb_standing
+schema: 1
+applies_to: [limb_deficiency, muscle_power, rom, leg_length_difference]
+classes: [42, 43, 44, 45, 46, 47]
+measures: [posture, lower_left, lower_right, upper_left, upper_right, ankle_pf_mrc, ankle_rom_deg, leg_length_diff_cm, hip_knee_deficit, lower_limb_sides_affected]
+merge: best_status
+
+# Values each discrete measure can take, for the tools that build every combination (the interpreter ignores it). The
+# thresholds of the ankle measures are not listed: the tools build a grid around the parameters.
+domains:
+  posture: [standing, prosthesis, seated, frame_runner]
+  lower_left: [0, 1, 2, 3]
+  lower_right: [0, 1, 2, 3]
+  upper_left: [0, 1, 2]
+  upper_right: [0, 1, 2]
+  ankle_pf_mrc: [0, 1, 2, 3, 4, 5]
+  hip_knee_deficit: [false, true]
+  lower_limb_sides_affected: [1, 2, 0, 3, -1]   # 1 and 2 are the contract of the API; the others are outside it, and the engine asks for the field again
+# When both pathways run, the whole product is too big: these are the values (as written, null is the missing measure) that
+# cover each side of every limit, and the levels keep all their values.
+fusion:
+  posture: [standing]
+  ankle_pf_mrc: [2, 3, null]
+  ankle_rom_deg: [10, 10.01, null]
+  leg_length_diff_cm: [6.99, 7, null]
+  hip_knee_deficit: [false, true, null]
+  lower_limb_sides_affected: [1, 2, 0, 3, -1, null]
+
+parameters:
+  required_posture:
+    values: [{from: 2024-01-01, to: null, value: standing}]
+    source: {doc: cpb-booklet-2024, page: 26}
+    status: implemented
+  # The three limits of the strength pathway. The booklet gives them as an example of a minimum eligibility criterion for the
+  # ankle, not as a rule of the class; the 7 cm comes from the F57 and is still to be confirmed for the T44.
+  max_plantar_flexion_mrc:
+    unit: MRC grade
+    values: [{from: 2024-01-01, to: null, value: 2}]
+    source: {doc: cpb-booklet-2024, page: 28, note: "given as an example of a minimum eligibility criterion"}
+    status: provisional
+  max_ankle_arc_deg:
+    unit: degrees
+    values: [{from: 2024-01-01, to: null, value: 10}]
+    source: {doc: cpb-booklet-2024, page: 28, note: "given as an example of a minimum eligibility criterion"}
+    status: provisional
+  min_leg_length_diff_cm:
+    unit: cm
+    values: [{from: 2024-01-01, to: null, value: 7}]
+    source: {doc: cpb-booklet-2024, page: 28, note: "the limit comes from the F57; to be confirmed for the T44"}
+    status: provisional
+
+flags:
+  wrong_posture:
+    measure: posture
+    test: {op: ne, value: required_posture}
+    reason: LIMB_STANDING_WRONG_POSTURE
+    source: {doc: cpb-booklet-2024, page: 26}
+    status: implemented
+
+# The gate: if one of these rules holds, the evaluation ends there.
+gate:
+  - {id: posture_missing, when: {any_missing: [posture]}, result: {all: insufficient_data}, report_missing: [posture], reason: LIMB_POSTURE_MISSING}
+  - {id: wrong_posture, when: {flag: wrong_posture}, result: {all: not_met}, report_missing: [], reason: LIMB_STANDING_WRONG_POSTURE}
+
+pathways:
+  # --- amputation by level --------------------------------------------------------------------------------------------
+  amputation:
+    applies_to: [limb_deficiency]
+    measures: [lower_left, lower_right, upper_left, upper_right]
+    derived:
+      lower_hi: {max: [lower_left, lower_right]}
+      lower_lo: {min: [lower_left, lower_right]}
+      upper_hi: {max: [upper_left, upper_right]}
+      upper_lo: {min: [upper_left, upper_right]}
+    flags:
+      lower_any:
+        measure: lower_hi
+        test: {op: ne, value: 0}
+        source: {doc: cpb-booklet-2024, page: 26}
+        status: implemented
+      upper_any:
+        measure: upper_hi
+        test: {op: ne, value: 0}
+        source: {doc: cpb-booklet-2024, page: 28}
+        status: implemented
+    decision:
+      - {id: levels_missing, when: {any_missing: [lower_left, lower_right, upper_left, upper_right]}, result: {all: insufficient_data}, report_missing: [lower_left, lower_right, upper_left, upper_right], reason: LIMB_LEVELS_MISSING}
+      - {id: lower_and_upper, when: {flag: [lower_any, upper_any]}, result: {all: needs_review}, report_missing: [], reason: LIMB_LOWER_AND_UPPER}
+      # the table of lower limb levels (most affected, least affected)
+      - id: unilateral_above
+        when: {equals: {lower_hi: 3, lower_lo: 0}}
+        result: {classes: {42: meets}, rest: not_met}
+        report_missing: []
+        reason: LIMB_UNILATERAL_ABOVE
+        source: {doc: cpb-booklet-2024, page: 26}
+        status: implemented
+      - id: unilateral_above_plus_foot
+        when: {equals: {lower_hi: 3, lower_lo: 1}}
+        result: {classes: {42: borderline}, rest: not_met}
+        report_missing: []
+        reason: LIMB_ABOVE_PLUS_FOOT
+        source: {doc: cpb-booklet-2024, page: 26}
+        status: provisional
+      - id: bilateral_with_above        # (3, 2) and (3, 3): standing without a prosthesis
+        when: {equals: {lower_hi: 3}}
+        result: {all: needs_review}
+        report_missing: []
+        reason: LIMB_BILATERAL_WITH_ABOVE
+        source: {doc: cpb-booklet-2024, page: 26}
+        status: provisional
+      - id: bilateral_below
+        when: {equals: {lower_hi: 2, lower_lo: 2}}
+        result: {classes: {43: meets}, rest: not_met}
+        report_missing: []
+        reason: LIMB_BILATERAL_BELOW
+        source: {doc: cpb-booklet-2024, page: 27}
+        status: implemented
+      - id: unilateral_below
+        when: {equals: {lower_hi: 2, lower_lo: 0}}
+        result: {classes: {44: meets}, rest: not_met}
+        report_missing: []
+        reason: LIMB_UNILATERAL_BELOW
+        source: {doc: cpb-booklet-2024, page: 28}
+        status: implemented
+      - id: below_plus_foot
+        when: {equals: {lower_hi: 2, lower_lo: 1}}
+        result: {classes: {43: borderline, 44: borderline}, rest: not_met}
+        report_missing: []
+        reason: LIMB_BELOW_PLUS_FOOT
+        source: {doc: cpb-booklet-2024, page: 27}
+        status: provisional
+      - id: unilateral_foot
+        when: {equals: {lower_hi: 1, lower_lo: 0}}
+        result: {classes: {44: borderline}, rest: not_met}
+        report_missing: []
+        reason: LIMB_PARTIAL_FOOT
+        source: {doc: cpb-booklet-2024, page: 28}
+        status: provisional
+      - id: bilateral_foot              # every other pair of the lower limbs
+        when: {flag: lower_any}
+        result: {all: needs_review}
+        report_missing: []
+        reason: LIMB_BILATERAL_FOOT
+      # the table of upper limb levels
+      - id: bilateral_elbow
+        when: {equals: {upper_hi: 2, upper_lo: 2}}
+        result: {classes: {45: meets}, rest: not_met}
+        report_missing: []
+        reason: LIMB_BILATERAL_ELBOW
+        source: {doc: cpb-booklet-2024, page: 28}
+        status: implemented
+      - id: unilateral_elbow
+        when: {equals: {upper_hi: 2, upper_lo: 0}}
+        result: {classes: {46: meets}, rest: not_met}
+        report_missing: []
+        reason: LIMB_UNILATERAL_ELBOW
+        source: {doc: cpb-booklet-2024, page: 29}
+        status: implemented
+      - id: bilateral_wrist
+        when: {equals: {upper_hi: 1, upper_lo: 1}}
+        result: {classes: {46: meets}, rest: not_met}
+        report_missing: []
+        reason: LIMB_BILATERAL_WRIST
+        source: {doc: cpb-booklet-2024, page: 29}
+        status: implemented
+      - id: elbow_plus_wrist
+        when: {equals: {upper_hi: 2, upper_lo: 1}}
+        result: {classes: {45: borderline, 46: borderline}, rest: not_met}
+        report_missing: []
+        reason: LIMB_ELBOW_PLUS_WRIST
+        source: {doc: cpb-booklet-2024, page: 29}
+        status: provisional
+      - id: unilateral_wrist            # every other pair of the upper limbs
+        when: {flag: upper_any}
+        result: {classes: {47: meets}, rest: not_met}
+        report_missing: []
+        reason: LIMB_UNILATERAL_WRIST
+        source: {doc: cpb-booklet-2024, page: 30}
+        status: implemented
+      - {id: no_amputation, result: {all: not_met}, report_missing: [], reason: LIMB_NO_AMPUTATION_RECORDED}
+
+  # --- strength, range of motion and leg length (the ankle CME) --------------------------------------------------------
+  strength_rom:
+    applies_to: [muscle_power, rom, leg_length_difference]
+    measures: [ankle_pf_mrc, ankle_rom_deg, leg_length_diff_cm, hip_knee_deficit, lower_limb_sides_affected]
+    criteria:
+      pf_strength:
+        measure: ankle_pf_mrc
+        test: {op: lt, value: max_plantar_flexion_mrc, inclusive: true}
+        reason: LIMB_PF_STRENGTH_CME
+        source: {doc: cpb-booklet-2024, page: 28}
+        status: provisional
+      ankle_arc:
+        measure: ankle_rom_deg
+        test: {op: lt, value: max_ankle_arc_deg, inclusive: true}
+        reason: LIMB_ANKLE_ARC_CME
+        source: {doc: cpb-booklet-2024, page: 28}
+        status: provisional
+      leg_length:
+        measure: leg_length_diff_cm
+        test: {op: gt, value: min_leg_length_diff_cm, inclusive: true}
+        reason: LIMB_LEG_LENGTH_CME
+        source: {doc: cpb-booklet-2024, page: 28}
+        status: provisional
+    class_rules:
+      44: {any_of: [pf_strength, ankle_arc, leg_length]}
+    flags:
+      sides_two:
+        measure: lower_limb_sides_affected
+        test: {op: eq, value: 2}
+        source: {doc: cpb-booklet-2024, page: 28}
+        status: implemented
+      sides_one:
+        measure: lower_limb_sides_affected
+        test: {op: eq, value: 1}
+        source: {doc: cpb-booklet-2024, page: 28}
+        status: implemented
+      hip_knee:                         # the engine reads the deficit as true or false
+        measure: hip_knee_deficit
+        test: {op: ne, value: false}
+        reason: LIMB_HIP_KNEE_ASSESSMENT
+        source: {doc: cpb-booklet-2024, page: 26}
+        status: provisional
+    decision:
+      - {id: two_sides, when: {any_class: true, flag: sides_two}, result: {all: needs_review}, report_missing: [], reason: LIMB_BILATERAL_INVOLVEMENT}
+      - {id: one_side, when: {any_class: true, flag: sides_one}, result: {meets: {pick: most_impaired}, borderline: [{class: 42, if: {flag: hip_knee}, reason: LIMB_HIP_KNEE_ASSESSMENT}], rest: not_met}, report_missing: [], reason: LIMB_CME_OTHER_CLASS}
+      - {id: sides_unknown, when: {any_class: true}, result: {borderline: [44, {class: 42, if: {flag: hip_knee}, reason: LIMB_HIP_KNEE_ASSESSMENT}], rest: not_met}, report_always: [lower_limb_sides_affected], reason: LIMB_SIDES_NOT_PROVIDED}
+      - {id: hip_knee_only, when: {flag: hip_knee}, result: {borderline: [42], rest: not_met}, report_missing: [], reason: LIMB_HIP_KNEE_ASSESSMENT}
+      - {id: no_ankle_measure, when: {all_missing: [ankle_pf_mrc, ankle_rom_deg, leg_length_diff_cm]}, result: {all: insufficient_data}, report_missing: [ankle_pf_mrc, ankle_rom_deg, leg_length_diff_cm], reason: LIMB_NO_ANKLE_MEASURE}
+      - {id: no_cme, result: {all: not_met}, report_missing: [ankle_pf_mrc, ankle_rom_deg, leg_length_diff_cm], reason: LIMB_NO_CME_MET}
+
+# Tests as data, each tied to a flag, a criterion or a decision rule and a source.
+tests:
+  - {name: unilateral above knee, input: {posture: standing, lower_left: 3, lower_right: 0, upper_left: 0, upper_right: 0, impairments: [limb_deficiency]}, expect: {42: meets, 43: not_met, 44: not_met}, criterion: unilateral_above, source: {doc: cpb-booklet-2024, page: 26}}
+  - {name: bilateral below knee, input: {posture: standing, lower_left: 2, lower_right: 2, upper_left: 0, upper_right: 0, impairments: [limb_deficiency]}, expect: {42: not_met, 43: meets, 44: not_met}, criterion: bilateral_below, source: {doc: cpb-booklet-2024, page: 27}}
+  - {name: unilateral below knee on either side, input: {posture: standing, lower_left: 0, lower_right: 2, upper_left: 0, upper_right: 0, impairments: [limb_deficiency]}, expect: {43: not_met, 44: meets}, criterion: unilateral_below, source: {doc: cpb-booklet-2024, page: 28}}
+  - {name: bilateral with an above knee needs review, input: {posture: standing, lower_left: 3, lower_right: 3, upper_left: 0, upper_right: 0, impairments: [limb_deficiency]}, expect: {42: needs_review, 47: needs_review}, criterion: bilateral_with_above, source: {doc: cpb-booklet-2024, page: 26}}
+  - {name: below knee and partial foot, input: {posture: standing, lower_left: 2, lower_right: 1, upper_left: 0, upper_right: 0, impairments: [limb_deficiency]}, expect: {43: borderline, 44: borderline, 42: not_met}, criterion: below_plus_foot, source: {doc: cpb-booklet-2024, page: 27}}
+  - {name: bilateral elbow, input: {posture: standing, lower_left: 0, lower_right: 0, upper_left: 2, upper_right: 2, impairments: [limb_deficiency]}, expect: {45: meets, 46: not_met, 47: not_met}, criterion: bilateral_elbow, source: {doc: cpb-booklet-2024, page: 28}}
+  - {name: unilateral wrist, input: {posture: standing, lower_left: 0, lower_right: 0, upper_left: 0, upper_right: 1, impairments: [limb_deficiency]}, expect: {47: meets, 46: not_met}, criterion: unilateral_wrist, source: {doc: cpb-booklet-2024, page: 30}}
+  - {name: upper and lower together need review, input: {posture: standing, lower_left: 3, lower_right: 0, upper_left: 1, upper_right: 0, impairments: [limb_deficiency]}, expect: {42: needs_review, 47: needs_review}, criterion: lower_any, source: {doc: cpb-booklet-2024, page: 26}}
+  - {name: no amputation recorded, input: {posture: standing, lower_left: 0, lower_right: 0, upper_left: 0, upper_right: 0, impairments: [limb_deficiency]}, expect: {42: not_met, 47: not_met}, criterion: no_amputation, source: {doc: cpb-booklet-2024, page: 26}}
+  - {name: a prosthesis posture rules the group out, input: {posture: prosthesis, lower_left: 3, impairments: [limb_deficiency]}, expect: {42: not_met, 47: not_met}, criterion: wrong_posture, source: {doc: cpb-booklet-2024, page: 26}}
+  - {name: an ankle strength criterion on one side is class 44, input: {posture: standing, ankle_pf_mrc: 2, lower_limb_sides_affected: 1, impairments: [muscle_power]}, expect: {44: meets, 42: not_met}, criterion: pf_strength, source: {doc: cpb-booklet-2024, page: 28}}
+  - {name: the limit of the arc is included, input: {posture: standing, ankle_rom_deg: 10, lower_limb_sides_affected: 1, impairments: [rom]}, expect: {44: meets}, criterion: ankle_arc, source: {doc: cpb-booklet-2024, page: 28}}
+  - {name: a leg length difference of 7 cm is included, input: {posture: standing, leg_length_diff_cm: 7, lower_limb_sides_affected: 1, impairments: [leg_length_difference]}, expect: {44: meets}, criterion: leg_length, source: {doc: cpb-booklet-2024, page: 28}}
+  - {name: both sides affected needs review, input: {posture: standing, ankle_pf_mrc: 1, lower_limb_sides_affected: 2, impairments: [muscle_power]}, expect: {44: needs_review, 42: needs_review}, criterion: two_sides, source: {doc: cpb-booklet-2024, page: 28}}
+  - {name: the sides not provided make 44 borderline, input: {posture: standing, ankle_pf_mrc: 1, impairments: [muscle_power]}, expect: {44: borderline, 42: not_met}, criterion: sides_unknown, source: {doc: cpb-booklet-2024, page: 28}}
+  - {name: a hip and knee deficit makes 42 borderline, input: {posture: standing, ankle_pf_mrc: 4, hip_knee_deficit: true, impairments: [muscle_power]}, expect: {42: borderline, 44: not_met}, criterion: hip_knee, source: {doc: cpb-booklet-2024, page: 26}}
+  - {name: no ankle measure at all, input: {posture: standing, impairments: [rom]}, expect: {44: insufficient_data}, criterion: no_ankle_measure, source: {doc: cpb-booklet-2024, page: 28}}
+  - {name: no minimum criterion met, input: {posture: standing, ankle_pf_mrc: 4, ankle_rom_deg: 30, leg_length_diff_cm: 2, impairments: [muscle_power]}, expect: {44: not_met}, criterion: no_cme, source: {doc: cpb-booklet-2024, page: 28}}
+  - {name: the two pathways keep the best status, input: {posture: standing, lower_left: 2, lower_right: 0, upper_left: 0, upper_right: 0, ankle_pf_mrc: 4, impairments: [limb_deficiency, muscle_power]}, expect: {44: meets, 43: not_met}, criterion: unilateral_below, source: {doc: cpb-booklet-2024, page: 28}}
+  - {name: other impairment, input: {posture: standing, lower_left: 3, impairments: [intellectual]}, expect: {42: not_applicable}, criterion: unilateral_above, source: {doc: cpb-booklet-2024, page: 26}}

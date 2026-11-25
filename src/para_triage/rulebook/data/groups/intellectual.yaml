@@ -1,0 +1,77 @@
+# Rule book of the intellectual impairment group (class 20). It mirrors evaluate_intellectual in rules/evaluators/sensory.py:
+# three criteria, all of them required (IQ, adaptive limitation, age of onset). One criterion that fails ends in not_met,
+# even if another is missing; otherwise a missing one ends in insufficient_data; otherwise the class is met.
+#
+# The current engine knows the onset only as a boolean (`onset_before_22`); the rule book reads an age (`onset_age`), so that
+# the limit can be a parameter that a variant changes. The regression translates one into the other (see compare.py).
+rulebook: intellectual
+schema: 1
+applies_to: [intellectual]
+classes: [20]
+measures: [iq, adaptive_limitation, onset_age]   # the order of `missing` in the current engine
+
+# Values each discrete measure can take, for the tools that build every combination (the interpreter ignores it). The ages
+# are the ones the engine can represent (before the limit, or at it); the others are tested by hand.
+domains:
+  iq: [40, 74, 75, 76, 120]
+  adaptive_limitation: [false, true]
+  onset_age: [21, 22]
+
+parameters:
+  iq_max:
+    unit: IQ points
+    values: [{from: 2024-01-01, to: null, value: 75}]
+    source: {doc: cpb-booklet-2024, page: 16}
+    status: implemented
+  # A variant changes it: the WPA of 2023 says before 18 (variants/wpa-2023.yaml).
+  onset_age_limit:
+    unit: years
+    values: [{from: 2024-01-01, to: null, value: 22}]
+    source: {doc: cpb-booklet-2024, page: 16}
+    status: provisional
+  # Our reading of "before the age": the age itself is already too late. The booklet does not say it in words (to be confirmed).
+  onset_limit_is_late:
+    values: [{from: 2024-01-01, to: null, value: true}]
+    source: {doc: cpb-booklet-2024, page: 16, note: "strict reading of 'before 22'; not confirmed by the booklet"}
+    status: provisional
+
+# Flags are tests that are not evidence for a class but change the decision: here, a criterion that is not met.
+flags:
+  iq_above_limit:
+    measure: iq
+    test: {op: gt, value: iq_max}
+    reason: INTELLECTUAL_IQ_ABOVE_LIMIT
+    source: {doc: cpb-booklet-2024, page: 16}
+    status: implemented
+  no_adaptive_limitation:
+    measure: adaptive_limitation
+    test: {op: eq, value: false}
+    reason: INTELLECTUAL_NO_ADAPTIVE_LIMITATION
+    source: {doc: cpb-booklet-2024, page: 16}
+    status: implemented
+  onset_too_late:
+    measure: onset_age
+    test: {op: gt, value: onset_age_limit, inclusive: onset_limit_is_late}
+    reason: INTELLECTUAL_ONSET_TOO_LATE
+    source: {doc: cpb-booklet-2024, page: 16}
+    status: provisional
+
+decision:
+  - {id: iq_above_limit, when: {flag: iq_above_limit}, result: {all: not_met}, report_missing: [], reason: INTELLECTUAL_IQ_ABOVE_LIMIT}
+  - {id: no_adaptive_limitation, when: {flag: no_adaptive_limitation}, result: {all: not_met}, report_missing: [], reason: INTELLECTUAL_NO_ADAPTIVE_LIMITATION}
+  - {id: onset_too_late, when: {flag: onset_too_late}, result: {all: not_met}, report_missing: [], reason: INTELLECTUAL_ONSET_TOO_LATE}
+  - {id: measure_missing, when: {any_missing: [iq, adaptive_limitation, onset_age]}, result: {all: insufficient_data}, report_missing: [iq, adaptive_limitation, onset_age], reason: INTELLECTUAL_MEASURE_MISSING}
+  - {id: criteria_met, result: {classes: {20: meets}}, reason: INTELLECTUAL_CRITERIA_MET}
+
+# Tests as data (the default variant, cpb-2024), each tied to a flag or a decision rule and a source.
+tests:
+  - {name: all three criteria are met, input: {iq: 70, adaptive_limitation: true, onset_age: 15}, expect: {20: meets}, criterion: criteria_met, source: {doc: cpb-booklet-2024, page: 16}}
+  - {name: the IQ limit is included, input: {iq: 75, adaptive_limitation: true, onset_age: 15}, expect: {20: meets}, criterion: iq_above_limit, source: {doc: cpb-booklet-2024, page: 16}}
+  - {name: one above the IQ limit, input: {iq: 76, adaptive_limitation: true, onset_age: 15}, expect: {20: not_met}, criterion: iq_above_limit, source: {doc: cpb-booklet-2024, page: 16}}
+  - {name: no adaptive limitation, input: {iq: 70, adaptive_limitation: false, onset_age: 15}, expect: {20: not_met}, criterion: no_adaptive_limitation, source: {doc: cpb-booklet-2024, page: 16}}
+  - {name: an onset before 22 counts, input: {iq: 70, adaptive_limitation: true, onset_age: 21}, expect: {20: meets}, criterion: onset_too_late, source: {doc: cpb-booklet-2024, page: 16}}
+  - {name: an onset at 22 is too late (strict reading, provisional), input: {iq: 70, adaptive_limitation: true, onset_age: 22}, expect: {20: not_met}, criterion: onset_too_late, source: {doc: cpb-booklet-2024, page: 16}}
+  - {name: a failed criterion wins over a missing one, input: {iq: 90, onset_age: 15}, expect: {20: not_met}, criterion: iq_above_limit, source: {doc: cpb-booklet-2024, page: 16}}
+  - {name: a missing criterion is asked for, input: {iq: 70, onset_age: 15}, expect: {20: insufficient_data}, criterion: measure_missing, source: {doc: cpb-booklet-2024, page: 16}}
+  - {name: no measure at all, input: {}, expect: {20: insufficient_data}, criterion: measure_missing, source: {doc: cpb-booklet-2024, page: 16}}
+  - {name: other impairment, input: {iq: 70, impairments: [visual]}, expect: {20: not_applicable}, criterion: criteria_met, source: {doc: cpb-booklet-2024, page: 16}}

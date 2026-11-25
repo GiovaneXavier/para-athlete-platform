@@ -1,0 +1,141 @@
+# Rule book of the seated physical group (wheelchair and seated throwing, classes 51 to 57). It reproduces evaluate_seated in
+# rules/evaluators/functional.py, which is our reading of the booklet (docs/rules_coverage.md, items 17 to 19): everything in
+# this group is `provisional`, to be replaced by the matrix of the specialist. Nothing here corrects the engine.
+#
+# The three limits of the ankle (class 57) are the ones of limb_standing: they are borrowed from its file (`same_as`), not
+# copied, so the value lives in one place and a variant that overrides it changes both groups.
+rulebook: wheelchair
+schema: 1
+applies_to: [limb_deficiency, muscle_power, rom, leg_length_difference]   # the same set as limb_standing
+classes: [51, 52, 53, 54, 55, 56, 57]
+measures: [posture, arm_function, trunk_function, leg_function, ankle_pf_mrc, ankle_rom_deg, leg_length_diff_cm]
+
+# Values each discrete measure can take, for the tools that build every combination (the interpreter ignores it). The
+# thresholds of the ankle measures are not listed: the tools build a grid around the parameters.
+domains:
+  posture: [standing, prosthesis, seated, frame_runner]
+  arm_function: [0, 1, 2, 3]       # shoulder and elbow deficit, finger deficit, intrinsic muscles only, preserved
+  trunk_function: [0, 1, 2]        # none, partial, full
+  leg_function: [0, 1, 2, 3, 4]    # none, hip flexors only, hip and knee, ankle level, normal
+  ankle_pf_mrc: [0, 1, 2, 3, 4, 5]
+
+parameters:
+  required_posture:
+    values: [{from: 2024-01-01, to: null, value: seated}]
+    source: {doc: cpb-booklet-2024, page: 55, note: "the postures come from the catalog"}
+    status: provisional
+  max_plantar_flexion_mrc: {same_as: limb_standing}
+  max_ankle_arc_deg: {same_as: limb_standing}
+  min_leg_length_diff_cm: {same_as: limb_standing}
+
+# The ankle minimum eligibility criteria: the same tests as the strength pathway of limb_standing, on the shared parameters.
+criteria:
+  pf_strength:
+    measure: ankle_pf_mrc
+    test: {op: lt, value: max_plantar_flexion_mrc, inclusive: true}
+    reason: LIMB_PF_STRENGTH_CME
+    source: {doc: cpb-booklet-2024, page: 61, note: "given as an example of a minimum eligibility criterion"}
+    status: provisional
+  ankle_arc:
+    measure: ankle_rom_deg
+    test: {op: lt, value: max_ankle_arc_deg, inclusive: true}
+    reason: LIMB_ANKLE_ARC_CME
+    source: {doc: cpb-booklet-2024, page: 61, note: "given as an example of a minimum eligibility criterion"}
+    status: provisional
+  leg_length:
+    measure: leg_length_diff_cm
+    test: {op: gt, value: min_leg_length_diff_cm, inclusive: true}
+    reason: LIMB_LEG_LENGTH_CME
+    source: {doc: cpb-booklet-2024, page: 61, note: "the limit comes from the F57; to be confirmed for the T44"}
+    status: provisional
+class_rules:
+  57: {any_of: [pf_strength, ankle_arc, leg_length]}
+
+# The codes of the descriptors are the values of the enums of the profile (see domains).
+flags:
+  wrong_posture:
+    measure: posture
+    test: {op: ne, value: required_posture}
+    reason: SEATED_WRONG_POSTURE
+    source: {doc: cpb-booklet-2024, page: 55, note: "posture of the classes 51 to 57"}
+    status: provisional
+  arm_deficit:                 # ArmFunction below PRESERVED: classes 51, 52 and 53
+    measure: arm_function
+    test: {op: between, low: 0, high: 2}
+    reason: SEATED_ARM_WITH_TRUNK
+    source: {doc: cpb-booklet-2024, page: 55, note: "our reading of the arm function (coverage item 17)"}
+    status: provisional
+  trunk_present:               # TrunkFunction other than NONE
+    measure: trunk_function
+    test: {op: ne, value: 0}
+    reason: SEATED_ARM_WITH_TRUNK
+    source: {doc: cpb-booklet-2024, page: 55, note: "our reading of the trunk function (coverage item 17)"}
+    status: provisional
+  legs_limited:                # LegFunction NONE or HIP_FLEXORS_ONLY
+    measure: leg_function
+    test: {op: between, low: 0, high: 1}
+    reason: SEATED_LEGS_LIMITED
+    source: {doc: cpb-booklet-2024, page: 55, note: "our reading of the leg function (coverage items 17 and 18)"}
+    status: provisional
+  ankle_level:                 # LegFunction ANKLE_LEVEL
+    measure: leg_function
+    test: {op: eq, value: 3}
+    reason: SEATED_ANKLE_CME
+    source: {doc: cpb-booklet-2024, page: 55, note: "our reading of the leg function (coverage items 17 and 18)"}
+    status: provisional
+
+# Decision: the first rule whose `when` holds applies; every rule says which missing fields it reports, as the engine does.
+decision:
+  - {id: posture_missing, when: {any_missing: [posture]}, result: {all: insufficient_data}, report_missing: [posture], reason: LIMB_POSTURE_MISSING}
+  - {id: wrong_posture, when: {flag: wrong_posture}, result: {all: not_met}, report_missing: [], reason: SEATED_WRONG_POSTURE}
+  - {id: arm_or_trunk_missing, when: {any_missing: [arm_function, trunk_function]}, result: {all: insufficient_data}, report_missing: [arm_function, trunk_function], reason: SEATED_ARM_TRUNK_MISSING}
+  - {id: arm_deficit_with_trunk, when: {flag: [arm_deficit, trunk_present]}, result: {all: needs_review}, report_missing: [], reason: SEATED_ARM_WITH_TRUNK}
+  # an arm deficit without trunk function: one class for each function of the arm
+  - id: arm_shoulder_elbow
+    when: {equals: {arm_function: 0}}
+    result: {classes: {51: meets}, rest: not_met}
+    report_missing: []
+    reason: SEATED_ARM_51
+    source: {doc: cpb-booklet-2024, page: 55, note: "coverage item 17"}
+    status: provisional
+  - id: arm_fingers
+    when: {equals: {arm_function: 1}}
+    result: {classes: {52: meets}, rest: not_met}
+    report_missing: []
+    reason: SEATED_ARM_52
+    source: {doc: cpb-booklet-2024, page: 56, note: "coverage item 17"}
+    status: provisional
+  - id: arm_intrinsic
+    when: {equals: {arm_function: 2}}
+    result: {classes: {53: meets}, rest: not_met}
+    report_missing: []
+    reason: SEATED_ARM_53
+    source: {doc: cpb-booklet-2024, page: 58, note: "coverage item 17"}
+    status: provisional
+  # the arms are preserved from here on
+  - {id: no_trunk, when: {equals: {trunk_function: 0}}, result: {classes: {54: meets}, rest: not_met}, report_missing: [], reason: SEATED_NO_TRUNK, source: {doc: cpb-booklet-2024, page: 58, note: "coverage item 17"}, status: provisional}
+  - {id: leg_missing, when: {any_missing: [leg_function]}, result: {all: insufficient_data}, report_missing: [leg_function], reason: SEATED_LEG_MISSING}
+  - {id: legs_limited, when: {flag: legs_limited}, result: {classes: {55: meets}, rest: not_met}, report_missing: [], reason: SEATED_LEGS_LIMITED}
+  - {id: hip_and_knee, when: {equals: {leg_function: 2}}, result: {classes: {56: meets}, rest: not_met}, report_missing: [], reason: SEATED_HIP_KNEE, source: {doc: cpb-booklet-2024, page: 60, note: "coverage item 17"}, status: provisional}
+  # the ankle level: class 57 by a minimum criterion, borderline if measures were given and none is met, met if none was given
+  - {id: ankle_cme_met, when: {flag: ankle_level, any_class: true}, result: {meets: {pick: most_impaired}, rest: not_met}, report_missing: [], reason: SEATED_ANKLE_CME}
+  - {id: ankle_not_documented, when: {flag: ankle_level, all_missing: [ankle_pf_mrc, ankle_rom_deg, leg_length_diff_cm]}, result: {classes: {57: meets}, rest: not_met}, report_missing: [], reason: SEATED_ANKLE_NOT_DOCUMENTED}
+  - {id: ankle_no_cme, when: {flag: ankle_level}, result: {borderline: [57], rest: not_met}, report_missing: [], reason: SEATED_ANKLE_NO_CME}
+  - {id: legs_normal, result: {all: not_met}, report_missing: [], reason: SEATED_LEGS_NORMAL}
+
+# Tests as data, each tied to a flag, a criterion or a decision rule and a source.
+tests:
+  - {name: arm shoulder and elbow deficit without trunk is class 51, input: {posture: seated, arm_function: 0, trunk_function: 0}, expect: {51: meets, 52: not_met, 54: not_met}, criterion: arm_shoulder_elbow, source: {doc: cpb-booklet-2024, page: 55}}
+  - {name: finger deficit without trunk is class 52, input: {posture: seated, arm_function: 1, trunk_function: 0}, expect: {52: meets, 51: not_met}, criterion: arm_fingers, source: {doc: cpb-booklet-2024, page: 56}}
+  - {name: intrinsic muscles only is class 53, input: {posture: seated, arm_function: 2, trunk_function: 0}, expect: {53: meets, 52: not_met}, criterion: arm_intrinsic, source: {doc: cpb-booklet-2024, page: 58}}
+  - {name: an arm deficit with some trunk function needs review, input: {posture: seated, arm_function: 1, trunk_function: 1}, expect: {51: needs_review, 57: needs_review}, criterion: arm_deficit_with_trunk, source: {doc: cpb-booklet-2024, page: 55}}
+  - {name: preserved arms and no trunk is class 54, input: {posture: seated, arm_function: 3, trunk_function: 0}, expect: {54: meets, 55: not_met}, criterion: no_trunk, source: {doc: cpb-booklet-2024, page: 58}}
+  - {name: trunk and legs limited to the hip flexors is class 55, input: {posture: seated, arm_function: 3, trunk_function: 2, leg_function: 1}, expect: {55: meets, 56: not_met}, criterion: legs_limited, source: {doc: cpb-booklet-2024, page: 59}}
+  - {name: hip and knee is class 56, input: {posture: seated, arm_function: 3, trunk_function: 2, leg_function: 2}, expect: {56: meets, 55: not_met}, criterion: hip_and_knee, source: {doc: cpb-booklet-2024, page: 60}}
+  - {name: ankle level with a criterion met is class 57, input: {posture: seated, arm_function: 3, trunk_function: 2, leg_function: 3, ankle_pf_mrc: 2}, expect: {57: meets, 56: not_met}, criterion: pf_strength, source: {doc: cpb-booklet-2024, page: 61}}
+  - {name: ankle level measured but no criterion met is borderline, input: {posture: seated, arm_function: 3, trunk_function: 2, leg_function: 3, ankle_pf_mrc: 4}, expect: {57: borderline}, criterion: ankle_no_cme, source: {doc: cpb-booklet-2024, page: 61}}
+  - {name: ankle level with no measure is class 57, input: {posture: seated, arm_function: 3, trunk_function: 2, leg_function: 3}, expect: {57: meets}, criterion: ankle_not_documented, source: {doc: cpb-booklet-2024, page: 61}}
+  - {name: normal legs are not met, input: {posture: seated, arm_function: 3, trunk_function: 2, leg_function: 4}, expect: {55: not_met, 57: not_met}, criterion: legs_normal, source: {doc: cpb-booklet-2024, page: 61}}
+  - {name: another posture rules the group out, input: {posture: standing}, expect: {51: not_met, 57: not_met}, criterion: wrong_posture, source: {doc: cpb-booklet-2024, page: 55}}
+  - {name: the arm and the trunk are asked for, input: {posture: seated, arm_function: 3}, expect: {51: insufficient_data}, criterion: arm_or_trunk_missing, source: {doc: cpb-booklet-2024, page: 55}}
+  - {name: other impairment, input: {posture: seated, impairments: [visual]}, expect: {51: not_applicable}, criterion: wrong_posture, source: {doc: cpb-booklet-2024, page: 55}}

@@ -1,0 +1,4 @@
+variant: cpb-2024
+description: "Leitura nossa do livreto do CPB (2024), a padrão"
+reference_date: 2024-10-01   # the date on which the value in force is chosen (never "today")
+overrides: {}                # parameter name -> value; another variant changes only what differs

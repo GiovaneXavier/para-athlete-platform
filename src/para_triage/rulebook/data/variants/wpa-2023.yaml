@@ -1,0 +1,8 @@
+variant: wpa-2023
+description: "A idade de início antes dos 18 anos, como nas regras da World Para Athletics de 2023; o resto, como a cpb-2024"
+reference_date: 2024-10-01   # the same date as cpb-2024, so that the only difference is what `overrides` says
+source: wpa-2023
+status: provisional
+# The WPA does not give an IQ limit (it refers to the criteria of Virtus, a questionnaire and a battery of tests, and the
+# T/F20 class is specific to the event). None of that is modelled: only the age of onset.
+overrides: {onset_age_limit: 18}

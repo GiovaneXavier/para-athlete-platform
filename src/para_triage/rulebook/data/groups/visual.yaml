@@ -1,0 +1,142 @@
+# Rule book of the visual group (classes 11 to 13). The numbers are the ones of rules/classes.yaml (a test compares them).
+rulebook: visual
+schema: 1
+applies_to: [visual]          # impairments that make the group applicable; otherwise not_applicable
+classes: [11, 12, 13]
+measures: [logmar_best_eye, visual_field_deg]
+
+# Parameters: values by date, a source and a status. A variant overrides them by name.
+parameters:
+  logmar_gt_11:
+    unit: logMAR
+    values: [{from: 2024-01-01, to: null, value: 2.60}]
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+  logmar_min_12:
+    unit: logMAR
+    values: [{from: 2024-01-01, to: null, value: 1.50}]
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+  logmar_max_12:
+    unit: logMAR
+    values: [{from: 2024-01-01, to: null, value: 2.60}]
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+  logmar_min_13:
+    unit: logMAR
+    values: [{from: 2024-01-01, to: null, value: 1.00}]
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+  logmar_max_13:
+    unit: logMAR
+    values: [{from: 2024-01-01, to: null, value: 1.40}]
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+  field_lt_12:
+    unit: degrees of diameter
+    values: [{from: 2024-01-01, to: null, value: 10}]
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+  field_lt_13:
+    unit: degrees of diameter
+    values: [{from: 2024-01-01, to: null, value: 40}]
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+  # Our reading of "menor que 2,60" for class 11: strictly worse than the limit, so 2,60 itself is class 12.
+  boundary_in_class_11:
+    values: [{from: 2024-01-01, to: null, value: false}]
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: provisional
+
+# Criteria: one test on one measure. Who they give evidence to is said by class_rules.
+criteria:
+  acuity_11:
+    measure: logmar_best_eye
+    test: {op: gt, value: logmar_gt_11, inclusive: boundary_in_class_11}
+    reason: ACUITY_IN_CLASS_RANGE
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+    valid: {from: 2024-01-01, to: null}
+  acuity_12:
+    measure: logmar_best_eye
+    test: {op: between, low: logmar_min_12, high: logmar_max_12, high_inclusive: {not: boundary_in_class_11}}
+    reason: ACUITY_IN_CLASS_RANGE
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+    valid: {from: 2024-01-01, to: null}
+  acuity_13:
+    measure: logmar_best_eye
+    test: {op: between, low: logmar_min_13, high: logmar_max_13}
+    reason: ACUITY_IN_CLASS_RANGE
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+    valid: {from: 2024-01-01, to: null}
+  field_12:
+    measure: visual_field_deg
+    test: {op: lt, value: field_lt_12}
+    reason: FIELD_IN_CLASS_RANGE
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+    valid: {from: 2024-01-01, to: null}
+  field_13:
+    measure: visual_field_deg
+    test: {op: lt, value: field_lt_13}
+    unless: field_12              # the field classes are an "else" chain: the raw result stays in the trace
+    reason: FIELD_IN_CLASS_RANGE
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+    valid: {from: 2024-01-01, to: null}
+
+# Which criteria give evidence to each class.
+class_rules:
+  11: {any_of: [acuity_11]}
+  12: {any_of: [acuity_12, field_12]}
+  13: {any_of: [acuity_13, field_13]}
+
+# Flags are tests that are not evidence for a class but change the decision.
+flags:
+  acuity_gap:
+    measure: logmar_best_eye
+    test: {op: between, low: logmar_max_13, high: logmar_min_12, low_inclusive: false, high_inclusive: false}
+    reason: ACUITY_IN_BOOKLET_GAP
+    source: {doc: cpb-booklet-2024, page: 14}
+    status: implemented
+
+# Decision: the first rule whose `when` holds applies.
+decision:
+  - id: no_measure
+    when: {all_missing: [logmar_best_eye, visual_field_deg]}
+    result: {all: insufficient_data}
+    reason: NO_VISUAL_MEASURE
+  - id: some_class_met
+    when: {any_class: true}
+    result:
+      meets: {pick: most_impaired}
+      borderline: [{class: 12, if: {flag: acuity_gap, primary_above: 12}, reason: ACUITY_IN_BOOKLET_GAP}]
+      rest: not_met
+  - id: gap
+    when: {flag: acuity_gap}
+    result: {borderline: [12, 13], rest: not_met}
+    reason: ACUITY_IN_BOOKLET_GAP
+  - id: one_missing
+    when: {any_missing: [logmar_best_eye, visual_field_deg]}
+    result: {all: insufficient_data}
+    reason: MEASURE_MISSING
+  - id: default
+    result: {all: not_met}
+    reason: ABOVE_ELIGIBILITY_LIMITS
+
+# Tests as data, each tied to a criterion and a source.
+tests:
+  - {name: inside class 12 by acuity, input: {logmar_best_eye: 2.0, visual_field_deg: 120}, expect: {11: not_met, 12: meets, 13: not_met}, criterion: acuity_12, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: just above the class 11 limit, input: {logmar_best_eye: 2.61, visual_field_deg: 120}, expect: {11: meets, 12: not_met}, criterion: acuity_11, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: exactly at the class 11 limit (our reading), input: {logmar_best_eye: 2.6, visual_field_deg: 120}, expect: {11: not_met, 12: meets}, criterion: acuity_11, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: gap between 13 and 12, input: {logmar_best_eye: 1.45, visual_field_deg: 120}, expect: {11: not_met, 12: borderline, 13: borderline}, criterion: acuity_gap, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: gap edge 1.40 is class 13, input: {logmar_best_eye: 1.4, visual_field_deg: 120}, expect: {12: not_met, 13: meets}, criterion: acuity_13, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: gap edge 1.50 is class 12, input: {logmar_best_eye: 1.5, visual_field_deg: 120}, expect: {12: meets, 13: not_met}, criterion: acuity_12, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: field decides class 13, input: {logmar_best_eye: 0.2, visual_field_deg: 35}, expect: {12: not_met, 13: meets}, criterion: field_13, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: field below 10 is class 12, input: {logmar_best_eye: 0.2, visual_field_deg: 9.99}, expect: {12: meets, 13: not_met}, criterion: field_12, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: acuity in the gap and field in the 13 band, input: {logmar_best_eye: 1.45, visual_field_deg: 35}, expect: {12: borderline, 13: meets}, criterion: acuity_gap, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: no measure at all, input: {}, expect: {11: insufficient_data, 12: insufficient_data, 13: insufficient_data}, criterion: acuity_11, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: field missing and acuity above the limits, input: {logmar_best_eye: 0.5}, expect: {12: insufficient_data}, criterion: acuity_12, source: {doc: cpb-booklet-2024, page: 14}}
+  - {name: other impairment, input: {logmar_best_eye: 2.0, impairments: [intellectual]}, expect: {11: not_applicable, 12: not_applicable, 13: not_applicable}, criterion: acuity_11, source: {doc: cpb-booklet-2024, page: 14}}

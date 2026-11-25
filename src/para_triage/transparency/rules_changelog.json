@@ -1,0 +1,12 @@
+[
+  {
+    "rules_id": "rules-d9ddefd74d11",
+    "date": "2026-10-24",
+    "summary": "Primeira versão registrada do livro de regras: catálogo de 33 classes do CPB (2024). Visual, intelectual, baixa estatura e prótese com critérios numéricos; membros em pé em parte; encefálicos, Petra e cadeiras ainda provisórios."
+  },
+  {
+    "rules_id": "rules-25f1beb46158",
+    "date": "2026-10-25",
+    "summary": "Sem mudança de comportamento: um comentário em schema.py diz que o campo visual é o diâmetro, em graus, como no livreto do CPB (outras fontes usam o raio, a metade)."
+  }
+]

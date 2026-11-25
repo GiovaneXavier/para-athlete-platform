@@ -1,0 +1,21 @@
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Official documents are not redistributed; fetch them from CPB / Lexi.
+references/
+
+# Generated artifacts
+data/raw/
+data/processed/
+runs/
+checkpoints/
+*.pt
+# Weights of the K35 image network (synthetic data only, 3.9 MB each): published on purpose in docs/modelo-k35/
+!docs/modelo-k35/*.pt
+
+# Local agent tooling (restore with the skills lock file)
+.agents/
+.claude/

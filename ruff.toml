@@ -1,0 +1,6 @@
+# Lint básico: erros de sintaxe e nomes indefinidos. O núcleo (rules, data, models,
+# experiments) é da linha matéria e tem avisos de estilo que não cabem a este repositório.
+target-version = "py310"
+
+[lint]
+select = ["E9", "F63", "F7", "F82"]

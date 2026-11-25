@@ -1,0 +1,107 @@
+# Rule book of the limb deficiency group with prosthesis (classes 61 to 64). It mirrors rules/evaluators/limb.py, and a
+# regression compares every combination of levels and postures with the current engine (python -m para_triage.rulebook regress).
+#
+# A table of levels is data: one decision rule per row, read in order, each with the id of the row in the study mode
+# (education/trace.py). The pair (most affected, least affected) of a limb set is derived with max and min.
+rulebook: limb_prosthesis
+schema: 1
+applies_to: [limb_deficiency]
+classes: [61, 62, 63, 64]
+measures: [posture, lower_left, lower_right, upper_left, upper_right]   # the order of `missing` in the current engine
+
+# Values each discrete measure can take, for the tools that build every combination (the interpreter ignores it).
+domains:
+  posture: [standing, prosthesis, seated, frame_runner]
+  lower_left: [0, 1, 2, 3]       # none, partial foot, below knee, through or above knee
+  lower_right: [0, 1, 2, 3]
+  upper_left: [0, 1, 2]          # none, wrist, elbow or above
+  upper_right: [0, 1, 2]
+
+derived:
+  lower_hi: {max: [lower_left, lower_right]}
+  lower_lo: {min: [lower_left, lower_right]}
+  upper_hi: {max: [upper_left, upper_right]}
+
+parameters:
+  required_posture:
+    values: [{from: 2024-01-01, to: null, value: prosthesis}]
+    source: {doc: cpb-booklet-2024, page: 35}
+    status: implemented
+
+# Flags are tests that are not evidence for a class but change the decision. `ne 0` and `eq 0` read the level as the
+# current engine does: a limb set has an amputation when its highest level is not zero.
+flags:
+  wrong_posture:
+    measure: posture
+    test: {op: ne, value: required_posture}
+    reason: LIMB_WRONG_POSTURE
+    source: {doc: cpb-booklet-2024, page: 35}
+    status: implemented
+  upper_amputation:
+    measure: upper_hi
+    test: {op: ne, value: 0}
+    reason: LIMB_UPPER_WITH_PROSTHESIS
+    source: {doc: cpb-booklet-2024, page: 35}
+    status: provisional
+  no_lower_amputation:
+    measure: lower_hi
+    test: {op: eq, value: 0}
+    reason: LIMB_NO_LOWER_AMPUTATION
+    source: {doc: cpb-booklet-2024, page: 35}
+    status: implemented
+
+# Decision: the first rule whose `when` holds applies. `report_missing` says which missing measures a verdict reports.
+decision:
+  - {id: posture_missing, when: {any_missing: [posture]}, result: {all: insufficient_data}, report_missing: [posture], reason: LIMB_POSTURE_MISSING}
+  - {id: wrong_posture, when: {flag: wrong_posture}, result: {all: not_met}, report_missing: [], reason: LIMB_WRONG_POSTURE}
+  - {id: levels_missing, when: {any_missing: [lower_left, lower_right, upper_left, upper_right]}, result: {all: insufficient_data}, report_missing: [lower_left, lower_right, upper_left, upper_right], reason: LIMB_LEVELS_MISSING}
+  - {id: upper_with_prosthesis, when: {flag: upper_amputation}, result: {all: needs_review}, reason: LIMB_UPPER_WITH_PROSTHESIS}
+  - {id: no_lower, when: {flag: no_lower_amputation}, result: {all: not_met}, reason: LIMB_NO_LOWER_AMPUTATION}
+  # the table of lower limb levels
+  - id: bilateral_above
+    when: {equals: {lower_hi: 3, lower_lo: 3}}
+    result: {classes: {61: meets}, rest: not_met}
+    reason: LIMB_BILATERAL_ABOVE
+    source: {doc: cpb-booklet-2024, page: 35}
+    status: implemented
+  - id: bilateral_below
+    when: {equals: {lower_hi: 2, lower_lo: 2}}
+    result: {classes: {62: meets}, rest: not_met}
+    reason: LIMB_BILATERAL_BELOW
+    source: {doc: cpb-booklet-2024, page: 35}
+    status: implemented
+  - id: unilateral_above
+    when: {equals: {lower_hi: 3, lower_lo: 0}}
+    result: {classes: {63: meets}, rest: not_met}
+    reason: LIMB_UNILATERAL_ABOVE
+    source: {doc: cpb-booklet-2024, page: 36}
+    status: implemented
+  - id: unilateral_below
+    when: {equals: {lower_hi: 2, lower_lo: 0}}
+    result: {classes: {64: meets}, rest: not_met}
+    reason: LIMB_UNILATERAL_BELOW
+    source: {doc: cpb-booklet-2024, page: 36}
+    status: implemented
+  - id: above_plus_below
+    when: {equals: {lower_hi: 3, lower_lo: 2}}
+    result: {classes: {61: borderline, 62: borderline}, rest: not_met}
+    reason: LIMB_ABOVE_PLUS_BELOW
+    source: {doc: cpb-booklet-2024, page: 35}
+    status: provisional
+  - id: foot_involved             # every other pair: a partial foot with a prosthesis
+    result: {all: needs_review}
+    reason: LIMB_FOOT_INVOLVED_WITH_PROSTHESIS
+
+# Tests as data, each tied to a flag or a decision rule and a source.
+tests:
+  - {name: bilateral above knee, input: {posture: prosthesis, lower_left: 3, lower_right: 3, upper_left: 0, upper_right: 0}, expect: {61: meets, 62: not_met, 63: not_met, 64: not_met}, criterion: bilateral_above, source: {doc: cpb-booklet-2024, page: 35}}
+  - {name: bilateral below knee, input: {posture: prosthesis, lower_left: 2, lower_right: 2, upper_left: 0, upper_right: 0}, expect: {61: not_met, 62: meets}, criterion: bilateral_below, source: {doc: cpb-booklet-2024, page: 35}}
+  - {name: unilateral above knee on either side, input: {posture: prosthesis, lower_left: 0, lower_right: 3, upper_left: 0, upper_right: 0}, expect: {63: meets, 64: not_met}, criterion: unilateral_above, source: {doc: cpb-booklet-2024, page: 36}}
+  - {name: unilateral below knee on either side, input: {posture: prosthesis, lower_left: 2, lower_right: 0, upper_left: 0, upper_right: 0}, expect: {63: not_met, 64: meets}, criterion: unilateral_below, source: {doc: cpb-booklet-2024, page: 36}}
+  - {name: above knee and below knee, input: {posture: prosthesis, lower_left: 3, lower_right: 2, upper_left: 0, upper_right: 0}, expect: {61: borderline, 62: borderline, 63: not_met, 64: not_met}, criterion: above_plus_below, source: {doc: cpb-booklet-2024, page: 35}}
+  - {name: a partial foot needs review, input: {posture: prosthesis, lower_left: 1, lower_right: 0, upper_left: 0, upper_right: 0}, expect: {61: needs_review, 62: needs_review, 63: needs_review, 64: needs_review}, criterion: foot_involved, source: {doc: cpb-booklet-2024, page: 35}}
+  - {name: an upper limb amputation needs review, input: {posture: prosthesis, lower_left: 3, lower_right: 3, upper_left: 1, upper_right: 0}, expect: {61: needs_review}, criterion: upper_amputation, source: {doc: cpb-booklet-2024, page: 35}}
+  - {name: no lower limb amputation, input: {posture: prosthesis, lower_left: 0, lower_right: 0, upper_left: 0, upper_right: 0}, expect: {61: not_met, 64: not_met}, criterion: no_lower_amputation, source: {doc: cpb-booklet-2024, page: 35}}
+  - {name: another posture rules the group out even with missing levels, input: {posture: standing, lower_left: 3}, expect: {61: not_met, 64: not_met}, criterion: wrong_posture, source: {doc: cpb-booklet-2024, page: 35}}
+  - {name: a missing level is asked for, input: {posture: prosthesis, lower_left: 3, lower_right: 3, upper_left: 0}, expect: {61: insufficient_data}, criterion: bilateral_above, source: {doc: cpb-booklet-2024, page: 35}}
+  - {name: other impairment, input: {posture: prosthesis, lower_left: 3, impairments: [intellectual]}, expect: {61: not_applicable, 64: not_applicable}, criterion: bilateral_above, source: {doc: cpb-booklet-2024, page: 35}}

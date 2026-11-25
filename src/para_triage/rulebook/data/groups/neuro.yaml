@@ -1,0 +1,205 @@
+# Rule book of the brain impairment group (classes 31 to 38: seated 31 to 34, standing 35 to 38). It reproduces evaluate_neuro in
+# rules/evaluators/functional.py, which is our reading of the booklet (docs/rules_coverage.md, items 13 to 15): everything in
+# this group is `provisional`, to be replaced by the matrix of the specialist. Nothing here corrects the engine.
+#
+# Three things the format needed here:
+#  - the set of impairments the engine tests (`types == {hypertonia}`, "has ataxia or athetosis") enters as boolean measures
+#    (`impairment_measures`: has_hypertonia, has_ataxia, has_athetosis), tested by flags; "ataxia or athetosis" is a derived max;
+#  - the two postures decide different classes: a rule with a `scope` decides only the classes of that group (`class_groups`);
+#    the other classes are not_met, with no field asked for, as in the engine;
+#  - the neurological report gate (`brain_report_missing`, `no_brain_report`) is the one of frame_runner (`_brain_gate` in the
+#    engine). The format has no reuse across files, so it is repeated on purpose.
+rulebook: neuro
+schema: 1
+applies_to: [hypertonia, ataxia, athetosis]
+classes: [31, 32, 33, 34, 35, 36, 37, 38]
+measures: [posture, brain_impairment_report, neuro_severity, chair_propulsion, cp_distribution]
+impairment_measures: [hypertonia, ataxia, athetosis]
+
+class_groups:
+  seated: {classes: [31, 32, 33, 34], outside_reason: NEURO_COMPETE_STANDING}
+  standing: {classes: [35, 36, 37, 38], outside_reason: NEURO_COMPETE_SEATED}
+
+# For the tools that build every combination (the interpreter ignores both). The group depends on which of the three types are
+# declared, so its impairment sets are listed: every non-empty combination of the three, and some with another impairment.
+domains:
+  posture: [standing, prosthesis, seated, frame_runner]
+  brain_impairment_report: [false, true]
+  neuro_severity: [0, 1, 2, 3]            # none, mild, moderate, severe
+  chair_propulsion: [1, 2, 3, 4]          # feet, arms impaired, arms asymmetric, arms symmetric
+  cp_distribution: [quadriplegia, triplegia, hemiplegia, diplegia]
+impairment_sets:
+  - [hypertonia]
+  - [ataxia]
+  - [athetosis]
+  - [hypertonia, ataxia]
+  - [hypertonia, athetosis]
+  - [ataxia, athetosis]
+  - [hypertonia, ataxia, athetosis]
+  - [hypertonia, visual]
+  - [ataxia, visual]
+  - [hypertonia, ataxia, visual]
+
+derived:
+  has_movement: {max: [has_ataxia, has_athetosis]}     # the engine's `movement`: ataxia or athetosis
+
+parameters:
+  seated_posture:
+    values: [{from: 2024-01-01, to: null, value: seated}]
+    source: {doc: cpb-booklet-2024, page: 18, note: "the postures come from the catalog: 31 to 34 seated, 35 to 38 standing"}
+    status: provisional
+  standing_posture:
+    values: [{from: 2024-01-01, to: null, value: standing}]
+    source: {doc: cpb-booklet-2024, page: 20, note: "the postures come from the catalog: 31 to 34 seated, 35 to 38 standing"}
+    status: provisional
+
+# The codes of the descriptors are the values of the enums of the profile (see domains).
+flags:
+  not_seated:
+    measure: posture
+    test: {op: ne, value: seated_posture}
+    source: {doc: cpb-booklet-2024, page: 18, note: "posture of the classes 31 to 34"}
+    status: provisional
+  not_standing:
+    measure: posture
+    test: {op: ne, value: standing_posture}
+    source: {doc: cpb-booklet-2024, page: 20, note: "posture of the classes 35 to 38"}
+    status: provisional
+  seated:
+    measure: posture
+    test: {op: eq, value: seated_posture}
+    source: {doc: cpb-booklet-2024, page: 18, note: "posture of the classes 31 to 34"}
+    status: provisional
+  standing:
+    measure: posture
+    test: {op: eq, value: standing_posture}
+    source: {doc: cpb-booklet-2024, page: 20, note: "posture of the classes 35 to 38"}
+    status: provisional
+  no_brain_report:
+    measure: brain_impairment_report
+    test: {op: eq, value: false}
+    reason: BRAIN_REPORT_REQUIRED
+    source: {doc: cpb-booklet-2024, page: 18, note: "our reading: a neurological report proving the brain impairment is required"}
+    status: provisional
+  severity_none:
+    measure: neuro_severity
+    test: {op: eq, value: 0}
+    source: {doc: cpb-booklet-2024, page: 18, note: "our reading of the functional severity (coverage item 15)"}
+    status: provisional
+  severity_mild:
+    measure: neuro_severity
+    test: {op: eq, value: 1}
+    source: {doc: cpb-booklet-2024, page: 18, note: "our reading of the functional severity (coverage item 15)"}
+    status: provisional
+  severity_severe:
+    measure: neuro_severity
+    test: {op: eq, value: 3}
+    source: {doc: cpb-booklet-2024, page: 18, note: "our reading of the functional severity (coverage item 15)"}
+    status: provisional
+  propulsion_feet:
+    measure: chair_propulsion
+    test: {op: eq, value: 1}
+    source: {doc: cpb-booklet-2024, page: 18, note: "our reading of the propulsion of the racing wheelchair (coverage item 13)"}
+    status: provisional
+  propulsion_arms_impaired:
+    measure: chair_propulsion
+    test: {op: eq, value: 2}
+    source: {doc: cpb-booklet-2024, page: 18, note: "our reading of the propulsion of the racing wheelchair (coverage item 13)"}
+    status: provisional
+  propulsion_arms_asymmetric:
+    measure: chair_propulsion
+    test: {op: eq, value: 3}
+    source: {doc: cpb-booklet-2024, page: 19, note: "our reading of the propulsion of the racing wheelchair (coverage item 13)"}
+    status: provisional
+  has_hypertonia:
+    measure: has_hypertonia
+    test: {op: eq, value: true}
+    source: {doc: cpb-booklet-2024, page: 20, note: "the declared types of impairment (coverage items 13 and 14)"}
+    status: provisional
+  no_hypertonia:
+    measure: has_hypertonia
+    test: {op: eq, value: false}
+    source: {doc: cpb-booklet-2024, page: 21, note: "the declared types of impairment (coverage item 14)"}
+    status: provisional
+  no_ataxia:
+    measure: has_ataxia
+    test: {op: eq, value: false}
+    source: {doc: cpb-booklet-2024, page: 20, note: "the declared types of impairment (coverage item 13)"}
+    status: provisional
+  no_athetosis:
+    measure: has_athetosis
+    test: {op: eq, value: false}
+    source: {doc: cpb-booklet-2024, page: 20, note: "the declared types of impairment (coverage item 13)"}
+    status: provisional
+  movement:
+    measure: has_movement
+    test: {op: eq, value: true}
+    source: {doc: cpb-booklet-2024, page: 21, note: "athetosis or ataxia mixed with hypertonia (coverage item 14)"}
+    status: provisional
+  dist_diplegia:
+    measure: cp_distribution
+    test: {op: eq, value: diplegia}
+    source: {doc: cpb-booklet-2024, page: 20, note: "our reading of the distribution (coverage items 13 to 15)"}
+    status: provisional
+  dist_hemiplegia:
+    measure: cp_distribution
+    test: {op: eq, value: hemiplegia}
+    source: {doc: cpb-booklet-2024, page: 22, note: "our reading of the distribution (coverage item 14)"}
+    status: provisional
+
+# Decision: the first rule whose `when` holds applies; every rule says which missing fields it reports, as the engine does. A
+# rule with a `scope` decides only the classes of that group (the others are not_met and ask for nothing).
+# `hypertonia only` is the engine's `types == {hypertonia}`: has_hypertonia and not ataxia and not athetosis.
+decision:
+  - {id: posture_missing, when: {any_missing: [posture]}, result: {all: insufficient_data}, report_missing: [posture], reason: LIMB_POSTURE_MISSING}
+  - {id: wrong_posture, when: {flag: [not_seated, not_standing]}, result: {all: not_met}, report_missing: [], reason: NEURO_WRONG_POSTURE}
+  - {id: brain_report_missing, when: {any_missing: [brain_impairment_report]}, result: {all: insufficient_data}, report_missing: [brain_impairment_report], reason: BRAIN_REPORT_MISSING}
+  - {id: no_brain_report, when: {flag: no_brain_report}, result: {all: not_met}, report_missing: [], reason: BRAIN_REPORT_REQUIRED}
+  # --- seated: classes 31 to 34 ---
+  - {id: seated_propulsion_missing, scope: seated, when: {flag: seated, any_missing: [chair_propulsion]}, result: {all: insufficient_data}, report_missing: [chair_propulsion], reason: NEURO_PROPULSION_MISSING}
+  - {id: seated_no_impact, scope: seated, when: {flag: [seated, severity_none]}, result: {all: not_met}, report_missing: [], reason: NEURO_NO_IMPACT}
+  - {id: seated_mild, scope: seated, when: {flag: [seated, severity_mild]}, result: {all: needs_review}, report_missing: [], reason: NEURO_SEATED_MILD}
+  - {id: seated_feet, scope: seated, when: {flag: [seated, propulsion_feet]}, result: {classes: {31: meets}, rest: not_met}, report_missing: [], reason: NEURO_FEET}
+  - {id: seated_arms_impaired, scope: seated, when: {flag: [seated, propulsion_arms_impaired]}, result: {classes: {32: meets}, rest: not_met}, report_missing: [], reason: NEURO_ARMS_IMPAIRED}
+  - {id: seated_arms_asymmetric, scope: seated, when: {flag: [seated, propulsion_arms_asymmetric]}, result: {classes: {33: meets}, rest: not_met}, report_missing: [], reason: NEURO_ARMS_ASYMMETRIC}
+  # symmetric, powerful propulsion: class 34 is described for spastic diplegia only
+  - {id: seated_symmetric_diplegia, scope: seated, when: {flag: [seated, has_hypertonia, no_ataxia, no_athetosis, dist_diplegia]}, result: {classes: {34: meets}, rest: not_met}, report_missing: [], reason: NEURO_SYMMETRIC_DIPLEGIA}
+  - {id: seated_symmetric_distribution_missing, scope: seated, when: {flag: [seated, has_hypertonia, no_ataxia, no_athetosis], any_missing: [cp_distribution]}, result: {borderline: [34], rest: not_met}, report_missing: [cp_distribution], reason: NEURO_SYMMETRIC_DISTRIBUTION_MISSING}
+  - {id: seated_symmetric_not_diplegia, scope: seated, when: {flag: [seated, has_hypertonia, no_ataxia, no_athetosis]}, result: {borderline: [33, 34], rest: not_met}, report_missing: [], reason: NEURO_SYMMETRIC_NOT_DIPLEGIA}
+  - {id: seated_symmetric_atypical, scope: seated, when: {flag: seated}, result: {borderline: [33], rest: not_met}, report_missing: [], reason: NEURO_SYMMETRIC_ATYPICAL}
+  # --- standing: classes 35 to 38 ---
+  - {id: standing_severity_missing, scope: standing, when: {flag: standing, any_missing: [neuro_severity]}, result: {all: insufficient_data}, report_missing: [neuro_severity], reason: NEURO_SEVERITY_MISSING}
+  - {id: standing_no_impact, scope: standing, when: {flag: [standing, severity_none]}, result: {all: not_met}, report_missing: [], reason: NEURO_NO_IMPACT}
+  - {id: standing_severe, scope: standing, when: {flag: [standing, severity_severe]}, result: {all: needs_review}, report_missing: [], reason: NEURO_STANDING_SEVERE}
+  - {id: standing_mild_diplegia, scope: standing, when: {flag: [standing, severity_mild, has_hypertonia, no_ataxia, no_athetosis, dist_diplegia]}, result: {borderline: [35, 38], rest: not_met}, report_missing: [], reason: NEURO_MILD_DIPLEGIA}
+  - {id: standing_mild, scope: standing, when: {flag: [standing, severity_mild]}, result: {classes: {38: meets}, rest: not_met}, report_missing: [], reason: NEURO_MILD}
+  # moderate severity from here on
+  - {id: standing_movement_only, scope: standing, when: {flag: [standing, no_hypertonia]}, result: {classes: {36: meets}, rest: not_met}, report_missing: [], reason: NEURO_MOVEMENT_ONLY}
+  - {id: standing_distribution_missing, scope: standing, when: {flag: standing, any_missing: [cp_distribution]}, result: {all: insufficient_data}, report_missing: [cp_distribution], reason: NEURO_DISTRIBUTION_MISSING}
+  - {id: standing_hemiplegia_mixed, scope: standing, when: {flag: [standing, dist_hemiplegia, movement]}, result: {borderline: [37, 36], rest: not_met}, report_missing: [], reason: NEURO_MIXED_HEMIPLEGIA}
+  - {id: standing_hemiplegia, scope: standing, when: {flag: [standing, dist_hemiplegia]}, result: {classes: {37: meets}, rest: not_met}, report_missing: [], reason: NEURO_HEMIPLEGIA}
+  - {id: standing_diplegia_mixed, scope: standing, when: {flag: [standing, dist_diplegia, movement]}, result: {borderline: [35, 36], rest: not_met}, report_missing: [], reason: NEURO_MIXED_DIPLEGIA}
+  - {id: standing_diplegia, scope: standing, when: {flag: [standing, dist_diplegia]}, result: {classes: {35: meets}, rest: not_met}, report_missing: [], reason: NEURO_DIPLEGIA}
+  - {id: standing_other_distribution, scope: standing, when: {flag: standing}, result: {all: needs_review}, report_missing: [], reason: NEURO_OTHER_DISTRIBUTION}
+
+# Tests as data, each tied to a flag or a decision rule and a source.
+tests:
+  - {name: seated with the feet is class 31, input: {posture: seated, brain_impairment_report: true, neuro_severity: 3, chair_propulsion: 1}, expect: {31: meets, 32: not_met, 35: not_met}, criterion: seated_feet, source: {doc: cpb-booklet-2024, page: 18}}
+  - {name: seated with impaired arms is class 32, input: {posture: seated, brain_impairment_report: true, neuro_severity: 2, chair_propulsion: 2}, expect: {32: meets, 31: not_met}, criterion: seated_arms_impaired, source: {doc: cpb-booklet-2024, page: 18}}
+  - {name: seated with asymmetric arms is class 33, input: {posture: seated, brain_impairment_report: true, neuro_severity: 2, chair_propulsion: 3}, expect: {33: meets, 34: not_met}, criterion: seated_arms_asymmetric, source: {doc: cpb-booklet-2024, page: 19}}
+  - {name: symmetric arms with spastic diplegia is class 34, input: {posture: seated, brain_impairment_report: true, neuro_severity: 2, chair_propulsion: 4, cp_distribution: diplegia, impairments: [hypertonia]}, expect: {34: meets, 33: not_met}, criterion: seated_symmetric_diplegia, source: {doc: cpb-booklet-2024, page: 20}}
+  - {name: symmetric arms with another distribution is borderline 33 and 34, input: {posture: seated, brain_impairment_report: true, neuro_severity: 2, chair_propulsion: 4, cp_distribution: hemiplegia, impairments: [hypertonia]}, expect: {33: borderline, 34: borderline, 31: not_met}, criterion: seated_symmetric_not_diplegia, source: {doc: cpb-booklet-2024, page: 20}}
+  - {name: symmetric arms with athetosis is borderline 33, input: {posture: seated, brain_impairment_report: true, neuro_severity: 2, chair_propulsion: 4, impairments: [athetosis]}, expect: {33: borderline, 34: not_met}, criterion: seated_symmetric_atypical, source: {doc: cpb-booklet-2024, page: 20}}
+  - {name: mild impairment competing seated needs review, input: {posture: seated, brain_impairment_report: true, neuro_severity: 1, chair_propulsion: 1}, expect: {31: needs_review, 35: not_met}, criterion: seated_mild, source: {doc: cpb-booklet-2024, page: 18}}
+  - {name: standing moderate diplegia is class 35, input: {posture: standing, brain_impairment_report: true, neuro_severity: 2, cp_distribution: diplegia, impairments: [hypertonia]}, expect: {35: meets, 36: not_met, 31: not_met}, criterion: standing_diplegia, source: {doc: cpb-booklet-2024, page: 20}}
+  - {name: standing moderate athetosis is class 36, input: {posture: standing, brain_impairment_report: true, neuro_severity: 2, impairments: [athetosis]}, expect: {36: meets, 37: not_met}, criterion: standing_movement_only, source: {doc: cpb-booklet-2024, page: 21}}
+  - {name: standing moderate hemiplegia is class 37, input: {posture: standing, brain_impairment_report: true, neuro_severity: 2, cp_distribution: hemiplegia, impairments: [hypertonia]}, expect: {37: meets}, criterion: standing_hemiplegia, source: {doc: cpb-booklet-2024, page: 22}}
+  - {name: hypertonia mixed with ataxia is borderline with 36, input: {posture: standing, brain_impairment_report: true, neuro_severity: 2, cp_distribution: hemiplegia, impairments: [hypertonia, ataxia]}, expect: {37: borderline, 36: borderline, 35: not_met}, criterion: standing_hemiplegia_mixed, source: {doc: cpb-booklet-2024, page: 22}}
+  - {name: standing mild is class 38, input: {posture: standing, brain_impairment_report: true, neuro_severity: 1, impairments: [ataxia]}, expect: {38: meets}, criterion: standing_mild, source: {doc: cpb-booklet-2024, page: 23}}
+  - {name: standing mild diplegia is borderline 35 and 38, input: {posture: standing, brain_impairment_report: true, neuro_severity: 1, cp_distribution: diplegia, impairments: [hypertonia]}, expect: {35: borderline, 38: borderline}, criterion: standing_mild_diplegia, source: {doc: cpb-booklet-2024, page: 23}}
+  - {name: standing severe needs review, input: {posture: standing, brain_impairment_report: true, neuro_severity: 3}, expect: {35: needs_review, 31: not_met}, criterion: standing_severe, source: {doc: cpb-booklet-2024, page: 18}}
+  - {name: standing quadriplegia needs review, input: {posture: standing, brain_impairment_report: true, neuro_severity: 2, cp_distribution: quadriplegia, impairments: [hypertonia]}, expect: {35: needs_review, 38: needs_review}, criterion: standing_other_distribution, source: {doc: cpb-booklet-2024, page: 22}}
+  - {name: the propulsion is asked for only for the seated classes, input: {posture: seated, brain_impairment_report: true}, expect: {31: insufficient_data, 35: not_met}, criterion: seated_propulsion_missing, source: {doc: cpb-booklet-2024, page: 18}}
+  - {name: another posture rules the group out, input: {posture: prosthesis}, expect: {31: not_met, 38: not_met}, criterion: wrong_posture, source: {doc: cpb-booklet-2024, page: 18}}
+  - {name: no neurological report, input: {posture: standing, brain_impairment_report: false}, expect: {35: not_met, 31: not_met}, criterion: no_brain_report, source: {doc: cpb-booklet-2024, page: 18}}
+  - {name: other impairment, input: {posture: standing, impairments: [visual]}, expect: {35: not_applicable}, criterion: standing_diplegia, source: {doc: cpb-booklet-2024, page: 20}}
